@@ -2,6 +2,11 @@ package se.voizter.felparkering.api.service;
 
 import java.util.List;
 import java.util.Objects;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Nullable;
@@ -40,28 +45,43 @@ public class ReportService {
     }
 
     @Transactional
-    public List<ReportDetailDto> getAll(User user, @Nullable Status status, @Nullable UserRequest assignedTo) {
+    public Page<ReportDetailDto> getAll(
+        int page, 
+        int size, 
+        String sortBy, 
+        String sortDir, 
+        String search, 
+        User user, 
+        @Nullable Status status, 
+        @Nullable UserRequest assignedTo
+    ) {
         Role role = user.getRole();
 
         User attendant = assignedTo != null ? userRepository.findByEmail(assignedTo.email())
             .orElseThrow(() -> new NotFoundException(Message.USER_NOT_FOUND.toString())) : null;
 
-        List<Report> reports;
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+            ? Sort.by(sortBy).ascending()
+            : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Report> reports;
 
         switch (role) {
             case ADMIN -> {
-                reports = reportRepository.findbyFilters(status);
+                reports = reportRepository.findByFilters(status, search, pageable);
             }
             case ATTENDANT -> {
-                reports = reportRepository.findbyFiltersInGroup(status, attendant, user.getAttendantGroup());
+                reports = reportRepository.findByFiltersInGroup(status, attendant, user.getAttendantGroup(), search, pageable);
             }
             case CUSTOMER -> {
-                reports = reportRepository.findbyFiltersCreatedBy(status, user);
+                reports = reportRepository.findByFiltersCreatedBy(status, user, search, pageable);
             }
             default -> throw new InvalidCredentialsException(Message.REPORT_NO_PERMISSION.toString());
         }
-
-        return reports.stream().map(this::toDetailDto).toList();
+        
+        return reports.map(this::toDetailDto);
     }
 
     @Transactional
@@ -162,13 +182,14 @@ public class ReportService {
     }
 
     private ReportDetailDto toDetailDto(Report report) {
+        Long assigneeId = report.getAssignedTo() != null ? report.getAssignedTo().getId() : null;
         return new ReportDetailDto(
             report.getId(),
             report.getAddress(),
             report.getLicensePlate(),
             report.getCategory(),
             report.getAttendantGroup(),
-            report.getAssignedTo().getId(),
+            assigneeId,
             report.getCreatedOn(),
             report.getUpdatedOn(),
             report.getStatus()
