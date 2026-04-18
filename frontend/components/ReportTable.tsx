@@ -213,7 +213,7 @@ export default function ReportTable({
                                 value={search}
                                 onFocus={() => setSearchFocused(true)}
                                 onBlur={() => setSearchFocused(false)}
-                                onChangeText={() => setSearch(search)}
+                                onChangeText={value => setSearch(value)}
                             />
                             
                         </View>
