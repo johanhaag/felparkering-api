@@ -3,6 +3,7 @@ package se.voizter.felparkering.api.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,10 +48,15 @@ public class ReportController {
 
     @GetMapping
     public ResponseEntity<?> all(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "createdOn") String sortBy,
+        @RequestParam(defaultValue = "desc") String sortDir,
+        @RequestParam(required = false) String search,
         @RequestParam(required = false) Status status,
         @RequestParam(required = false) UserRequest assignedTo
         ) {
-        List<ReportDetailDto> reports = reportService.getAll(currentUser(), status, assignedTo);
+        Page<ReportDetailDto> reports = reportService.getAll(page, size, sortBy, sortDir, search, currentUser(), status, assignedTo);
         return ResponseEntity.ok(reports);
     }
 

@@ -55,6 +55,7 @@ interface WebMapProps {
 }
 
 export default function WebMap({ adressPosition, hqPosition, onRouteReady }: WebMapProps) {
+    console.log(adressPosition);
     return (
         <MapContainer center={adressPosition} zoom={10} style={{ height: '50vh', width: '100%' }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

@@ -5,7 +5,7 @@ import FormTextField from "./FormTextField";
 interface DropdownItem {
     index: string;
     label: string;
-    value: string;
+    value?: string;
 }
 
 interface FormDropdownProps {
@@ -13,7 +13,7 @@ interface FormDropdownProps {
     placeholder?: string;
     value?: string;
     onChange?: (value: string) => void;
-    iconName: any;
+    iconName?: any;
     error?: string;
     allowCustomInput?: boolean;
 }

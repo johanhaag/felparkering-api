@@ -3,6 +3,8 @@ package se.voizter.felparkering.api.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,22 +21,47 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     @Query("""
             SELECT r FROM Report r
-            WHERE (:status IS null OR r.status = :status)
+            WHERE (:status IS NULL OR r.status = :status)
+                AND (
+                    :search IS NULL
+                    OR LOWER(r.address.street) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                    OR LOWER(r.licensePlate) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                )
             """)
-    List<Report> findbyFilters(@Param("status") Status status);
+    Page<Report> findByFilters(@Param("status") Status status, @Param("search") String search, Pageable pageable);
 
     @Query("""
             SELECT r FROM Report r
             WHERE r.attendantGroup = :attendantGroup
-                AND (:status IS null OR r.status = :status)
-                AND (:attendant IS null OR r.assignedTo = :attendant)
+                AND (:status IS NULL OR r.status = :status)
+                AND (:attendant IS NULL OR r.assignedTo = :attendant)
+                AND (
+                    :search IS NULL
+                    OR LOWER(r.address.street) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                    OR LOWER(r.licensePlate) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                )
             """)
-    List<Report> findbyFiltersInGroup(@Param("status") Status status, @Param("attendant") User attendant, @Param("attendantGroup") AttendantGroup attendantGroup);
+    Page<Report> findByFiltersInGroup(
+        @Param("status") Status status, 
+        @Param("attendant") User attendant, 
+        @Param("attendantGroup") AttendantGroup attendantGroup, 
+        @Param("search") String search,
+        Pageable pageable
+    );
 
     @Query("""
             SELECT r FROM Report r
             WHERE r.createdBy = :user
-                AND (:status IS null OR r.status = :status)
+                AND (:status IS NULL OR r.status = :status)
+                AND (
+                    :search IS NULL
+                    OR LOWER(r.address.street) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                    OR LOWER(r.licensePlate) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+                )
             """)
-    List<Report> findbyFiltersCreatedBy(@Param("status") Status status, @Param("user") User user);
+    Page<Report> findByFiltersCreatedBy(
+        @Param("status") Status status, 
+        @Param("user") User user, 
+        @Param("search") String search, 
+        Pageable pageable);
 }

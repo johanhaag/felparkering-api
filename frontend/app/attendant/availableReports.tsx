@@ -14,7 +14,14 @@ import Toast from "react-native-toast-message";
 export default function AvailableReports() {
     const [activeReport, setActiveReport] = useState<Report | null>(null);
     const [newReports, setNewReports] = useState([]);
-    const [filters, setFilters] = useState<{status?: string; from?: string; to?: string}>({});
+    const [currentPage, setCurrentPage] = useState(0); 
+    const [numElements, setNumElements] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [sortBy, setSortBy] = useState("id");
+    const [sortDir, setSortDir] = useState("asc"); 
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState("");
 
     const api = useApi();
     const {user} = useUser();
@@ -29,8 +36,14 @@ export default function AvailableReports() {
         useCallback(() => {
         const fetchNewReports = async () => {
             try {
-                const response = await api.getReports();
-                setNewReports(response.data);
+                const response = await api.getReports({page: currentPage, size: pageSize, search: search, sortBy: sortBy, sortDir: sortDir});
+                console.log(response);
+                setNewReports(response.data.content);
+                setCurrentPage(response.data.number);
+                setNumElements(response.data.numberOfElements);
+                setTotalElements(response.data.totalElements);
+                setTotalPages(response.data.totalPages);
+                console.log(search);
             } catch (error: any) {
                 if (axios.isAxiosError(error) && error.response) {
                     console.log(error.response.data.error);
@@ -38,7 +51,7 @@ export default function AvailableReports() {
             }
         };
         fetchNewReports();
-        }, [])
+        }, [sortBy, sortDir, search, currentPage, pageSize])
     );
 
     const handleAccept = async () => {
@@ -61,13 +74,26 @@ export default function AvailableReports() {
 
     return (
         <View className="flex-1 bg-park-background">
-            <View className="flex-row mt-4 px-4 gap-4">
+            <View className="flex-1 flex-row mt-4 px-4 gap-4">
                 <View className="flex-[2]">
                     <ReportTable 
                         columns={["Id", "Address", "Violation", "Status", "Date"]}
                         data={newReports}
                         selected={activeReport}
-                        onSelect={setActiveReport}
+                        onSelect={setActiveReport} 
+                        currentPage={currentPage}
+                        totalPages={totalPages} 
+                        onPageChange={setCurrentPage}
+                        numberOfElements={numElements} 
+                        totalElements={totalElements}
+                        sortBy={sortBy} 
+                        sortDir={sortDir}   
+                        onSortBy={setSortBy} 
+                        onSortDir={setSortDir} 
+                        pageSize={pageSize}
+                        setPageSize={setPageSize}    
+                        search={search}
+                        setSearch={setSearch}       
                     />
                 </View>
                 {activeReport ? ( 

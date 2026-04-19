@@ -10,7 +10,7 @@ interface FormTextFieldProps extends TextInputProps {
 export default function FormTextField({ iconName, error, ...props }: FormTextFieldProps) {
     const [focused, setFocused] = useState(false);
     return (
-        <View className="m-2 ">
+        <View className="m-2">
             <View 
                 className={`w-full flex-row items-center border rounded px-4 py-2 flex-1 mb-1 ${
                     focused ? "border-blue-500" : error ? "border-red-500" : "border-gray-300"

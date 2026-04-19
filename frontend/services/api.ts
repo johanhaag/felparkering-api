@@ -64,8 +64,13 @@ export function useApi() {
         login: (data: any) => api.post('/login', data),
         register: (data: any) => api.post('/register', data),
         createReport: (data: any) => api.post('/reports', data),
-        getReports: (params?: {status?: string, assignedTo?: string}) => api.get('/reports', {
+        getReports: (params?: {page?: number, size?: number, search?: string, sortBy?: string, sortDir?: string, status?: string, assignedTo?: string}) => api.get('/reports', {
             params: {
+                page: params?.page,
+                size: params?.size,
+                search: params?.search,
+                sortBy: params?.sortBy,
+                sortDir: params?.sortDir,
                 status: params?.status,
                 assignedTo: params?.assignedTo,
             },
