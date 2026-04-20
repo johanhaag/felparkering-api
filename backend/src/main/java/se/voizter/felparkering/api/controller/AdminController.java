@@ -40,7 +40,7 @@ public class AdminController {
     @PostMapping("/users")
     public ResponseEntity<?> createAttendant(@Valid @RequestBody User attendant) {
         UserAdminDetailDto user = adminService.createAttendant(attendant);
-        return ResponseEntity.ok(Map.of("user", "User with id: " + user.email() + " was created."));
+        return ResponseEntity.ok(Map.of("user", "User with id: " + user.id() + " was created."));
     }
 
     @DeleteMapping("/users/{id}")

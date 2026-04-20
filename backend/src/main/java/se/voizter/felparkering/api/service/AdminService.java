@@ -49,7 +49,7 @@ public class AdminService {
     }
 
     private UserAdminDetailDto toUserDetailDto(User user) {
-        return new UserAdminDetailDto(user.getEmail(), user.getRole());
+        return new UserAdminDetailDto(user.getId(), user.getRole());
     }
 
     private AttendantGroupDetailDto toGroupDetailDto(AttendantGroup group) {
