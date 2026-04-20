@@ -48,15 +48,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
-            const email: string | undefined = payload?.email ?? payload.sub ?? undefined;
+            const id: number | undefined = payload?.id ?? payload.sub ?? undefined;
             const role: string | undefined = payload?.role ?? undefined;
 
-            if (!email) {
+            if (!id) {
                 setUser(null);
                 return;
             }
 
-            setUser({ email, role: role});
+            setUser({ id, role: role});
 
         } catch (error) {
             console.warn("loadUser failed:", error);

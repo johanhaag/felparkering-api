@@ -27,7 +27,7 @@ public class JwtFilter extends OncePerRequestFilter{
      * Skapar en ny instans av {@code JwtFilter}.
      * 
      * @param jwtProvider komponent för att validera och tolka JWT-token.
-     * @param userRepository repository för att slå upp användare via e-post.
+     * @param userRepository repository för att slå upp användare via id.
      */
     public JwtFilter(JwtProvider jwtProvider) {
         this.jwtProvider = jwtProvider;
@@ -54,7 +54,7 @@ public class JwtFilter extends OncePerRequestFilter{
             String token = bearer.substring(7);
 
             if (jwtProvider.validateToken(token)) {
-                String email = jwtProvider.getEmail(token);
+                Long id = jwtProvider.getId(token);
                 String role  = Optional.ofNullable(jwtProvider.getRole(token))
                     .orElse("")
                     .trim()
@@ -62,7 +62,7 @@ public class JwtFilter extends OncePerRequestFilter{
                 String granted = role.startsWith("ROLE_") ? role : "ROLE_" + role;
 
                 var auth = new UsernamePasswordAuthenticationToken(
-                    email, null, List.of(new SimpleGrantedAuthority(granted)));
+                    id, null, List.of(new SimpleGrantedAuthority(granted)));
 
                 SecurityContextHolderStrategy strategy = SecurityContextHolder.getContextHolderStrategy();
                 SecurityContext context = strategy.createEmptyContext();

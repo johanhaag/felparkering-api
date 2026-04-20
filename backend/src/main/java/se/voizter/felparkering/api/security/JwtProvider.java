@@ -36,20 +36,20 @@ public class JwtProvider {
      * Genererar en signerad JWT-token för en autentiserad användare.
      * 
      * Tokenen innehåller:
-     * - Subject: användarens e-post.
+     * - Subject: användarens id.
      * - Claim "role": användarens roll.
      * - Issued at: tidpunkten då token skapades.
      * - Expiration: hur länge tokenen är giltig.
      * 
-     * @param email användarens e-post.
+     * @param id användarens id.
      * @param role användarens roll.
      * @return en signerad JWT-token.
      */
-    public String generateToken(String email, Role role) {
+    public String generateToken(Long id, Role role) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes()); // Genererar en nyckel utifrån den hemliga nyckeln baserat på HMAC-algoritmen.
         Instant now = Instant.now();
         return Jwts.builder()
-            .subject(email)
+            .subject(id.toString())
             .claim("role", role.toString())
             .expiration(Date.from(now.plusMillis(expiration)))
             .issuedAt(Date.from(now))
@@ -83,15 +83,17 @@ public class JwtProvider {
      * Hämtar användarens e-post från en JWT-token.
      * 
      * @param token en giltig JWT-token.
-     * @return e-post som finns i tokenens "subject"-fält.
+     * @return id som finns i tokenens "subject"-fält.
      */
-    public String getEmail(String token) {
-        return Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
+    public Long getId(String token) {
+        return Long.valueOf(
+            Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject()
+            );
     }
 
     /**

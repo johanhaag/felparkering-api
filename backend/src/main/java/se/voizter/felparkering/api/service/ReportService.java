@@ -57,7 +57,7 @@ public class ReportService {
     ) {
         Role role = user.getRole();
 
-        User attendant = assignedTo != null ? userRepository.findByEmail(assignedTo.email())
+        User attendant = assignedTo != null ? userRepository.findById(assignedTo.id())
             .orElseThrow(() -> new NotFoundException(Message.USER_NOT_FOUND.toString())) : null;
 
         Sort sort = sortDir.equalsIgnoreCase("asc")

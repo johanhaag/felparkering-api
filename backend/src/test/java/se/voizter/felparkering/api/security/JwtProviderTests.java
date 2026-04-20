@@ -28,16 +28,16 @@ public class JwtProviderTests {
 
     @Test
     void testGenerateAndValidateToken() {
-        String token = jwtProvider.generateToken("user@example.com", Role.ADMIN);
+        String token = jwtProvider.generateToken(1L, Role.ADMIN);
 
         assertNotNull(token);
         assertTrue(jwtProvider.validateToken(token));
-        assertEquals("user@example.com", jwtProvider.getEmail(token));
+        assertEquals(1L, jwtProvider.getId(token));
     }
 
     @Test
     void testValidateTokenReturnsFalseForTamperedToken() {
-        String token = jwtProvider.generateToken("user@example.com", Role.ADMIN);
+        String token = jwtProvider.generateToken(1L, Role.ADMIN);
         String tamperedToken = token + "a";
 
         assertFalse(jwtProvider.validateToken(tamperedToken));
@@ -46,7 +46,7 @@ public class JwtProviderTests {
     @Test
     void testValidateTokenReturnsFalseForExpiredToken() throws InterruptedException {
         ReflectionTestUtils.setField(jwtProvider, "expiration", 1L);
-        String token = jwtProvider.generateToken("user@example.com", Role.ADMIN);
+        String token = jwtProvider.generateToken(1L, Role.ADMIN);
 
         Thread.sleep(10);
 
