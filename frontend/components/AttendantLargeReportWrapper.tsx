@@ -3,34 +3,19 @@ import WebMap from "./WebMap";
 import { cities } from "../constants/cities";
 import { useCallback, useState } from "react";
 import Chip from "./Chip";
-import { prettyDistance, prettyDuration } from "../utils/prettyPrinter";
-
-
+import { prettyAddress, prettyDistance, prettyDuration } from "../utils/prettyPrinter";
+import { Report } from "../types/report";
+import { parkingCategories } from "../constants/parkingCategories";
+import { ReportAction } from "../utils/attendantActions";
 
 interface AttendantLargeReportWrapperProps {
-    primaryLabel: string;
-    primaryAction: () => void;
-    secondaryLabel: string;
-    secondaryAction: () => void;
-    address: string;
-    hq: string;
-    licensePlate: string;
-    violation: string;
-    timeStamp: string;
-    coords: [number, number];
+    activeReport: Report;
+    actions: ReportAction[];
 }
 
 export default function AttendantLargeReportWrapper({ 
-    primaryLabel, 
-    primaryAction, 
-    secondaryLabel, 
-    secondaryAction, 
-    address, 
-    hq, 
-    licensePlate, 
-    violation, 
-    timeStamp, 
-    coords 
+    activeReport,
+    actions
 }: AttendantLargeReportWrapperProps) {
 
     const [routeSummary, setRouteSummary] = useState<{distance: number; duration: number} | null>(null);
@@ -43,7 +28,8 @@ export default function AttendantLargeReportWrapper({
         });
     }, []);
 
-    
+    const coords: [number, number] = [activeReport.address.latitude, activeReport.address.longitude];
+    const violation = parkingCategories.find(item => item.value === activeReport.category)?.label ?? "Unknown violation";
 
     function prettyDate(ts?: string) {
         if (!ts) return "";
@@ -61,13 +47,13 @@ export default function AttendantLargeReportWrapper({
         return match?.position || null;
     }
     
-    const hqPosition = getCityCoordinates(hq);
+    const hqPosition = getCityCoordinates(activeReport.attendantGroup.name);
 
     return (
         <View className="w-full">
                 <View className="relative rounded-lg p-4 shadow-md border shadow-gray-200 border-gray-200 bg-white overflow-hidden divide-y divide-slate-100">
                     <View className="px-5 py-4">
-                        <Text className="text-2xl font-semibold text-slate-900">{address}</Text>
+                        <Text className="text-2xl font-semibold text-slate-900">{prettyAddress(activeReport.address)}</Text>
                     </View>  
 
                     <View className="border-t border-slate-100" />
@@ -82,25 +68,37 @@ export default function AttendantLargeReportWrapper({
                         <View className="flex-row flex-wrap items-center gap-2">
                             {routeSummary && (
                                 <>
-                                    <Chip label={licensePlate} iconName="car-outline"/>
+                                    <Chip label={activeReport.licensePlate} iconName="car-outline"/>
                                     <Chip label={prettyDistance(routeSummary.distance)} iconName="speedometer-outline"/>
                                     <Chip label={prettyDuration(routeSummary.duration)} iconName="time-outline"/>
                                 </>
                             )}
                         </View>
                         <Text className="text-base text-slate-900">{violation}</Text>
-                        <Text className="text-sm text-slate-500">{prettyDate(timeStamp)}</Text>
+                        <Text className="text-sm text-slate-500">{prettyDate(activeReport.createdOn)}</Text>
                     </View>
 
                     <View className="border-t border-slate-100" />
 
                     <View className="px-5 py-4 flex-row items-center justify-between gap-3">
-                        <Pressable onPress={primaryAction} className="rounded-xl px-5 py-3 bg-emerald-600">
-                            <Text className="text-white text-base font-medium text-center">{primaryLabel}</Text>
-                        </Pressable>
-                        <Pressable onPress={secondaryAction} className="rounded-xl px-5 py-3 border border-slate-200"> 
-                            <Text className="text-slate-700 text-base font-medium text-center">{secondaryLabel}</Text>
-                        </Pressable>
+                        {actions.map(action => (
+                            <Pressable 
+                                key={action.key}
+                                onPress={action.onPress} 
+                                disabled={action.disabled}
+                                className={
+                                    action.variant === "primary"
+                                        ? "rounded-xl px-5 py-3 bg-emerald-600"
+                                        : action.variant === "danger"
+                                        ? "rounded-xl px-5 py-3 bg-red-600"
+                                        : "rounded-xl px-5 py-3 border border-slate-200"
+                                }
+                            >
+                                <Text className={action.variant === "secondary" ? "text-slate-700" : "text-white"}>
+                                    {action.label}
+                                </Text>
+                            </Pressable>
+                        ))}
                     </View>
                 </View>
         </View>

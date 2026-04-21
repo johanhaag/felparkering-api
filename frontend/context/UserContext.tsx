@@ -1,8 +1,8 @@
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
-import { User } from "../types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { decodeJwt, sanitizeToken } from "../utils/decodeJwt";
 import { Text } from "react-native";
+import { User } from "../types/User";
 
 interface UserContextType {
     user: User | null;
@@ -48,15 +48,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
-            const id: number | undefined = payload?.id ?? payload.sub ?? undefined;
-            const role: string | undefined = payload?.role ?? undefined;
+            const userId = payload?.sub != null ? Number(payload.sub) : null;
+            const userRole = payload?.role ?? null;
 
-            if (!id) {
-                setUser(null);
+            if (userId == null || Number.isNaN(userId)) {
+                await AsyncStorage.removeItem("token");
                 return;
             }
 
-            setUser({ id, role: role});
+            setUser({ id: userId, role: userRole });
 
         } catch (error) {
             console.warn("loadUser failed:", error);

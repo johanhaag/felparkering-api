@@ -5,15 +5,14 @@ import { Report } from "../../types/report";
 import { router, useFocusEffect } from "expo-router";
 import { getApiMessage, useApi } from "../../services/api";
 import axios from "axios";
-import { parkingCategories } from "../../constants/parkingCategories";
 import { useUser } from "../../context/UserContext";
-import { prettyAddress } from "../../utils/prettyPrinter";
 import ReportTable from "../../components/ReportTable";
 import Toast from "react-native-toast-message";
+import { getAttendantActions } from "../../utils/attendantActions";
 
 export default function AvailableReports() {
     const [activeReport, setActiveReport] = useState<Report | null>(null);
-    const [newReports, setNewReports] = useState([]);
+    const [newReports, setNewReports] = useState<Report[]>([]);
     const [currentPage, setCurrentPage] = useState(0); 
     const [numElements, setNumElements] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
@@ -32,43 +31,56 @@ export default function AvailableReports() {
         }
     }, [user]);
 
+    const fetchReports = useCallback(async () => {
+        try {
+            const response = await api.getReports({
+                page: currentPage,
+                size: pageSize,
+                search,
+                sortBy,
+                sortDir,
+            });
+
+            const reports: Report[] = response.data.content;
+
+            setNewReports(reports);
+            setCurrentPage(response.data.number);
+            setNumElements(response.data.numberOfElements);
+            setTotalElements(response.data.totalElements);
+            setTotalPages(response.data.totalPages);
+            setActiveReport(previous =>
+                previous ? reports.find(report => report.id === previous.id) ?? null : previous
+            );
+        } catch (error: any) {
+            if (axios.isAxiosError(error) && error.response) {
+                console.log(error.response.data.error);
+            }
+        }
+    }, [api, currentPage, pageSize, search, sortBy, sortDir]);
+
     useFocusEffect(
         useCallback(() => {
-        const fetchNewReports = async () => {
-            try {
-                const response = await api.getReports({page: currentPage, size: pageSize, search: search, sortBy: sortBy, sortDir: sortDir});
-                setNewReports(response.data.content);
-                setCurrentPage(response.data.number);
-                setNumElements(response.data.numberOfElements);
-                setTotalElements(response.data.totalElements);
-                setTotalPages(response.data.totalPages);
-            } catch (error: any) {
-                if (axios.isAxiosError(error) && error.response) {
-                    console.log(error.response.data.error);
-                }
-            }
-        };
-        fetchNewReports();
-        }, [sortBy, sortDir, search, currentPage, pageSize])
+            fetchReports();
+        }, [fetchReports])
     );
 
-    const handleAccept = async () => {
-        if (!activeReport) return;
-
-        try {
-            const update = await api.updateReport(activeReport.id, { status: "ASSIGNED" });
-            Toast.show({ type: "success", text1: getApiMessage(update) });
-            const res = await api.getReports();
-            setNewReports(res.data);
-            setActiveReport(null);
-        } catch (error) {
-            Toast.show({ type: "error", text1: getApiMessage(error) });
-        } 
+    const updateReportStatus = async (reportId: number, status: string) => {
+        const update = await api.updateReport(reportId, { status });
+        Toast.show({ type: "success", text1: getApiMessage(update) });
+        await fetchReports();
     };
 
-    const handleCancel = () => {
-        setActiveReport(null);
-    };
+    const handleAssign = () => activeReport && updateReportStatus(activeReport.id, "ASSIGNED");
+    const handleResolve = () => activeReport && updateReportStatus(activeReport.id, "RESOLVED");
+    const handleUnassign = () => activeReport && updateReportStatus(activeReport.id, "NEW");
+
+    const actions = activeReport
+    ? getAttendantActions(activeReport, user?.id, {
+          onAssign: handleAssign,
+          onResolve: handleResolve,
+          onUnassign: handleUnassign,
+      })
+    : [];
 
     return (
         <View className="flex-1 bg-park-background">
@@ -98,16 +110,8 @@ export default function AvailableReports() {
                 {activeReport ? ( 
                     <><View className="flex-1">
                         <AttendantLargeReportWrapper
-                            primaryLabel="Accept"
-                            primaryAction={handleAccept}
-                            secondaryLabel="Cancel"
-                            secondaryAction={handleCancel}
-                            address={prettyAddress(activeReport.address)}
-                            hq={activeReport.attendantGroup.name}
-                            licensePlate={activeReport.licensePlate}
-                            violation={parkingCategories.find(item => item.value === activeReport.category)?.label ?? "Unknown violation"}
-                            timeStamp={activeReport.createdOn}
-                            coords={[activeReport.address.latitude, activeReport.address.longitude]} />
+                            activeReport={activeReport}
+                            actions={actions} />
                     </View></>
                 ) : (
                     <></>

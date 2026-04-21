@@ -130,7 +130,7 @@ export default function ReportTable({
         ];
 
         const rowBg = isSelected ? "bg-gray-200" : "bg-white";
-        console.log(currentUserId);
+        
         const assignedToLabel = item.assignedToId === currentUserId ? item.assignedToId + " (You)" : item.assignedToId
 
         return (

@@ -50,15 +50,15 @@ export default function Register(props: RegisterProps) {
                 return;
             }
 
-            const userId = payload.id ?? payload.sub ?? null;
-            const userRole = payload.role ?? null;
+            const userId = payload?.sub != null ? Number(payload.sub) : null;
+            const userRole = payload?.role ?? null;
 
-            if (!userId) {
+            if (userId == null || Number.isNaN(userId)) {
                 await AsyncStorage.removeItem("token");
                 setFormError("Login failed (no identity in token).");
                 return;
             }
-                        
+
             setUser({ id: userId, role: userRole });
 
             switch (userRole) {
