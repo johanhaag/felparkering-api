@@ -37,13 +37,11 @@ export default function AvailableReports() {
         const fetchNewReports = async () => {
             try {
                 const response = await api.getReports({page: currentPage, size: pageSize, search: search, sortBy: sortBy, sortDir: sortDir});
-                console.log(response);
                 setNewReports(response.data.content);
                 setCurrentPage(response.data.number);
                 setNumElements(response.data.numberOfElements);
                 setTotalElements(response.data.totalElements);
                 setTotalPages(response.data.totalPages);
-                console.log(search);
             } catch (error: any) {
                 if (axios.isAxiosError(error) && error.response) {
                     console.log(error.response.data.error);
@@ -76,7 +74,8 @@ export default function AvailableReports() {
         <View className="flex-1 bg-park-background">
             <View className="flex-1 flex-row mt-4 px-4 gap-4">
                 <View className="flex-[2]">
-                    <ReportTable 
+                    <ReportTable
+                        currentUserId={user?.id} 
                         columns={["Id", "Address", "Violation", "Status", "Date"]}
                         data={newReports}
                         selected={activeReport}

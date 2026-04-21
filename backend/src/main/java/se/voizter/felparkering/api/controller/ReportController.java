@@ -41,7 +41,17 @@ public class ReportController {
 
     private User currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Long id = Long.parseLong((String) auth.getPrincipal());
+        Object principal = auth.getPrincipal();
+        Long id;
+
+        if (principal instanceof Long) {
+            id = (Long) principal;
+        } else if (principal instanceof String) {
+            id = Long.parseLong((String) principal);
+        } else {
+            throw new UsernameNotFoundException("User not found");
+        }
+
         User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return user;
     }

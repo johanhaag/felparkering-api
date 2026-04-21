@@ -10,6 +10,7 @@ import FixedDropdown from "./FixedDropdown";
 import { pageSizes } from "../constants/pageSizes";
 
 type TableProps = {
+    currentUserId?: number;
     columns: string[];
     data: Report[];
     selected: Report | null;
@@ -48,6 +49,7 @@ const getPagesToShow = (currentPage: number, totalPages: number) => {
 type SortDir = "asc" | "desc";
 
 export default function ReportTable({ 
+    currentUserId,
     columns = [], 
     data = [], 
     selected, 
@@ -73,7 +75,7 @@ export default function ReportTable({
     const [searchFocused, setSearchFocused] = useState(false);
 
     const handleHeaderPress = (index: number) => {
-        const key = columnNameMap.find(c => c.index === index).value;
+        const key = columnNameMap.find(c => c.index === index)?.value ?? "Unknown column name";
         let nextDir: SortDir = "asc";
 
         if (sortBy === key && sortDir === "asc") {
@@ -122,12 +124,14 @@ export default function ReportTable({
         const values = [
             item.id,
             prettyAddress(item.address),
-            parkingCategories.find(violation => violation.value === item.category).label,
+            parkingCategories.find(violation => violation.value === item.category)?.label ?? "Unknown violation",
             item.status,
             prettyDate(item.createdOn),
         ];
 
         const rowBg = isSelected ? "bg-gray-200" : "bg-white";
+        console.log(currentUserId);
+        const assignedToLabel = item.assignedToId === currentUserId ? item.assignedToId + " (You)" : item.assignedToId
 
         return (
             <Pressable 
@@ -147,6 +151,14 @@ export default function ReportTable({
                         >
                             {value}
                         </Text>
+                        {value === "ASSIGNED" ? (
+                            <Text className="text-sm italic text-slate-700">
+                                Attendant: {assignedToLabel}
+                            </Text>
+                        ) : (
+                            <>
+                            </>
+                        )}
                     </View>
                 ))}
             </Pressable>
