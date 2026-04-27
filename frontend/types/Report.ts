@@ -6,7 +6,7 @@ export interface Report {
     licensePlate: string;
     category: ParkingViolationValue;
     attendantGroup: any;
-    assignedTo: number;
+    assignedToId: number;
     createdOn: string;
     updatedOn: string;
     status: string;

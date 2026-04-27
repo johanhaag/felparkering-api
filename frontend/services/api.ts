@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useMemo } from 'react';
 import { useUser } from "../context/UserContext";
 
 export function getApiMessage(input: any, fallback = "Something went wrong") {
@@ -32,39 +33,42 @@ export function useApi() {
     const { setUser } = useUser();
 
     const API_URL = process.env.EXPO_PUBLIC_API_BASE ?? "http://localhost:8080";
-    const api = axios.create({
-        baseURL: API_URL,
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    });
+    const api = useMemo(() => {
+        const client = axios.create({
+            baseURL: API_URL,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
 
-    api.interceptors.request.use(
-        async config => {
-            if (config.url?.includes("/login")) return config;
-            const t = await AsyncStorage.getItem("token");
-            if (t) config.headers.Authorization = `Bearer ${t}`;
-            return config;
-        }, error => Promise.reject(error)
-    );
+        client.interceptors.request.use(
+            async config => {
+                if (config.url?.includes("/login") || config.url?.includes("/register")) return config;
+                const t = await AsyncStorage.getItem("token");
+                if (t) config.headers.Authorization = `Bearer ${t}`;
+                return config;
+            }, error => Promise.reject(error)
+        );
 
-
-    api.interceptors.response.use(
-        response => response,
-        async error => {
-            if (error.response?.status === 401) {
-                await AsyncStorage.removeItem("token");
-                setUser(null);
+        client.interceptors.response.use(
+            response => response,
+            async error => {
+                if (error.response?.status === 401) {
+                    await AsyncStorage.removeItem("token");
+                    setUser(null);
+                }
+                return Promise.reject(error);
             }
-            return Promise.reject(error);
-        }
-    );
+        );
 
-    return {
+        return client;
+    }, [API_URL, setUser]);
+
+    return useMemo(() => ({
         login: (data: any) => api.post('/login', data),
         register: (data: any) => api.post('/register', data),
         createReport: (data: any) => api.post('/reports', data),
-        getReports: (params?: {page?: number, size?: number, search?: string, sortBy?: string, sortDir?: string, status?: string, assignedTo?: string}) => api.get('/reports', {
+        getReports: (params?: {page?: number, size?: number, search?: string, sortBy?: string, sortDir?: string, status?: string, assignedToId?: number}) => api.get('/reports', {
             params: {
                 page: params?.page,
                 size: params?.size,
@@ -72,7 +76,7 @@ export function useApi() {
                 sortBy: params?.sortBy,
                 sortDir: params?.sortDir,
                 status: params?.status,
-                assignedTo: params?.assignedTo,
+                assignedToId: params?.assignedToId,
             },
         }),
         getReport: (id: number) => api.get(`/reports/${id}`),
@@ -85,5 +89,5 @@ export function useApi() {
         deleteAttendantGroup: (id: number) => api.delete(`/attendants/${id}`),
         searchAddress: (query: string) => api.get(`/addresses/search`, { params: { query } }),
         getRoute: (payload: { start: [number, number]; end: [number, number] }, cfg?: any) => api.post('/addresses/route', payload, cfg),
-    };
+    }), [api]);
 }

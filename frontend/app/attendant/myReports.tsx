@@ -22,7 +22,7 @@ export default function MyReports() {
             useCallback(() => {
             const fetchMyReports = async () => {
                 try {
-                    const response = await api.getReports({assignedTo: user?.email});
+                    const response = await api.getReports({assignedToId: user?.id});
                     setMyReports(response.data);
                 } catch (error: any) {
                     if (axios.isAxiosError(error) && error.response) {
