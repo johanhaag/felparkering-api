@@ -1,13 +1,15 @@
 package se.voizter.felparkering.api.service;
 
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.RestClient;
 
 import se.voizter.felparkering.api.repository.AddressRepository;
-import se.voizter.felparkering.api.security.JwtProvider;
 
 @ExtendWith(MockitoExtension.class)
 public class AddressServiceTests {
@@ -15,10 +17,27 @@ public class AddressServiceTests {
     AddressRepository addressRepository;
 
     @Mock
-    JwtProvider jwtProvider;
+    RestClient.Builder restClientBuilder;
 
-    @InjectMocks
+    @Mock
+    RestClient restClient;
+
     AddressService addressService;
+
+    @BeforeEach
+    void setUp() {
+        when(restClientBuilder.baseUrl("http://test-api"))
+            .thenReturn(restClientBuilder);
+        when(restClientBuilder.build())
+            .thenReturn(restClient);
+
+        addressService = new AddressService(
+            restClientBuilder,
+            "http://test-api",
+            "test-api-key",
+            addressRepository
+        );
+    }
 
     @Test
     void returnsSuggestionsFromMatchingAddresses() {

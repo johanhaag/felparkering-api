@@ -6,13 +6,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import se.voizter.felparkering.api.security.JwtProvider;
+import se.voizter.felparkering.api.repository.AttendantGroupRepository;
+import se.voizter.felparkering.api.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminServiceTests {
 
     @Mock
-    JwtProvider jwtProvider;
+    UserRepository userRepository;
+
+    @Mock
+    AttendantGroupRepository groupRepository;
 
     @InjectMocks
     AdminService adminService;

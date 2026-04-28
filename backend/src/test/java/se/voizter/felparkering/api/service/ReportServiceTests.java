@@ -6,14 +6,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import se.voizter.felparkering.api.repository.AddressRepository;
+import se.voizter.felparkering.api.repository.AttendantGroupRepository;
 import se.voizter.felparkering.api.repository.ReportRepository;
+import se.voizter.felparkering.api.repository.UserRepository;
 import se.voizter.felparkering.api.security.JwtProvider;
 
 @ExtendWith(MockitoExtension.class)
 public class ReportServiceTests {
     
     @Mock
+    AddressRepository addressRepository;
+
+    @Mock
     ReportRepository reportRepository;
+
+    @Mock
+    AttendantGroupRepository groupRepository;
+
+    @Mock
+    UserRepository userRepository;
 
     @Mock
     JwtProvider jwtProvider;
