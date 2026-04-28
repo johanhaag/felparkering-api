@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import se.voizter.felparkering.api.model.AttendantGroup;
+import se.voizter.felparkering.api.testsupport.TestDataFactory;
 
 
 @DataJpaTest
@@ -21,9 +22,7 @@ public class AttendantGroupRepositoryTests {
 
     @Test
     void canSaveAndFindByName() {
-        AttendantGroup attendantGroup = new AttendantGroup();
-        attendantGroup.setName("test");
-
+        AttendantGroup attendantGroup = TestDataFactory.attendantGroup();
         groupRepository.save(attendantGroup);
         Optional<AttendantGroup> result = groupRepository.findByName(attendantGroup.getName());
 
@@ -33,19 +32,17 @@ public class AttendantGroupRepositoryTests {
 
     @Test
     void findByNameReturnsEmptyWhenNotFound() {
-        Optional<AttendantGroup> result = groupRepository.findByName("test");
+        Optional<AttendantGroup> result = groupRepository.findByName("missing-group");
 
         assertTrue(result.isEmpty());
     }
 
     @Test
     void cannotSaveAttendantGroupWithDuplicateName() {
-        AttendantGroup attendantGroup1 = new AttendantGroup();
-        attendantGroup1.setName("test");
+        AttendantGroup attendantGroup1 = TestDataFactory.attendantGroup();
         groupRepository.save(attendantGroup1);
 
-        AttendantGroup attendantGroup2 = new AttendantGroup();
-        attendantGroup2.setName("test");
+        AttendantGroup attendantGroup2 = TestDataFactory.attendantGroup();
 
         assertThrows(DataIntegrityViolationException.class, () -> {
             groupRepository.saveAndFlush(attendantGroup2);
@@ -59,5 +56,10 @@ public class AttendantGroupRepositoryTests {
         assertThrows(DataIntegrityViolationException.class, () -> {
             groupRepository.saveAndFlush(attendantGroup);
         });
+    }
+
+    @Test
+    void existsByName() {
+        // TODO: Write test
     }
 }
