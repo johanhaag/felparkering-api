@@ -1,6 +1,7 @@
 package se.voizter.felparkering.api.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,19 +50,28 @@ public class UserRepositoryTests {
 
     @Test
     void existsByEmail() {
-        // TODO: Write test
+        User user = userRepository.save(
+            TestDataFactory.customerUser()
+        );
+
+        assertTrue(userRepository.existsByEmail(user.getEmail()));
+
+        assertFalse(userRepository.existsByEmail("missing@example.com"));
     }
 
     @Test
     void canSaveMultipleUsersWithDifferentRoles() {
-        User admin = TestDataFactory.adminUser("adminr@example.com", "admin123");
-        userRepository.save(admin);
+        userRepository.save(
+            TestDataFactory.adminUser("adminr@example.com", "admin123")
+        );
 
-        User attendant = TestDataFactory.attendantUser("attendant@example.com", "attendant123");
-        userRepository.save(attendant);
+        userRepository.save(
+            TestDataFactory.attendantUser("attendant@example.com", "attendant123")
+        );
 
-        User customer = TestDataFactory.customerUser("customer@example.com", "customer123");
-        userRepository.save(customer);
+        userRepository.save(
+            TestDataFactory.customerUser("customer@example.com", "customer123")
+        );
 
         assertTrue(userRepository.findByEmail("adminr@example.com").isPresent());
         assertTrue(userRepository.findByEmail("attendant@example.com").isPresent());
@@ -70,8 +80,9 @@ public class UserRepositoryTests {
 
     @Test
     void cannotSaveUserWithDuplicateEmail() {
-        User user1 = TestDataFactory.customerUser();
-        userRepository.save(user1);
+        userRepository.save(
+            TestDataFactory.customerUser()
+        );
 
         User user2 = TestDataFactory.customerUser();
 
@@ -109,14 +120,15 @@ public class UserRepositoryTests {
 
     @Test 
     void canSaveUserWithAttendantGroup() {
-        AttendantGroup group = TestDataFactory.attendantGroup("Testgruppen");
-        AttendantGroup savedGroup = groupRepository.save(group);
+        AttendantGroup group = groupRepository.save(
+            TestDataFactory.attendantGroup("Testgruppen")
+        );
 
-        User user = TestDataFactory.attendantUser("assigned@example.com", "secure");
-        user.setAttendantGroup(savedGroup);
-        User savedUser = userRepository.save(user);
+        User user = userRepository.save(
+            TestDataFactory.attendantUser(group)
+        );
 
-        assertEquals("Testgruppen", savedUser.getAttendantGroup().getName());
+        assertEquals("Testgruppen", user.getAttendantGroup().getName());
     }
 }
 

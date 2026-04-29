@@ -1,6 +1,7 @@
 package se.voizter.felparkering.api.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -22,8 +23,10 @@ public class AttendantGroupRepositoryTests {
 
     @Test
     void canSaveAndFindByName() {
-        AttendantGroup attendantGroup = TestDataFactory.attendantGroup();
-        groupRepository.save(attendantGroup);
+        AttendantGroup attendantGroup = groupRepository.save(
+            TestDataFactory.attendantGroup()
+        );
+
         Optional<AttendantGroup> result = groupRepository.findByName(attendantGroup.getName());
 
         assertTrue(result.isPresent());
@@ -38,9 +41,21 @@ public class AttendantGroupRepositoryTests {
     }
 
     @Test
+    void existsByName() {
+        AttendantGroup attendantGroup = groupRepository.save(
+            TestDataFactory.attendantGroup()
+        );
+
+        assertTrue(groupRepository.existsByName(attendantGroup.getName()));
+
+        assertFalse(groupRepository.existsByName("no-group"));
+    }
+
+    @Test
     void cannotSaveAttendantGroupWithDuplicateName() {
-        AttendantGroup attendantGroup1 = TestDataFactory.attendantGroup();
-        groupRepository.save(attendantGroup1);
+        groupRepository.save(
+            TestDataFactory.attendantGroup()
+        );
 
         AttendantGroup attendantGroup2 = TestDataFactory.attendantGroup();
 
@@ -58,8 +73,4 @@ public class AttendantGroupRepositoryTests {
         });
     }
 
-    @Test
-    void existsByName() {
-        // TODO: Write test
-    }
 }
