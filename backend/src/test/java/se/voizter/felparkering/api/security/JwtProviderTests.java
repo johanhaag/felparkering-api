@@ -3,12 +3,14 @@ package se.voizter.felparkering.api.security;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.jsonwebtoken.JwtException;
 import se.voizter.felparkering.api.enums.Role;
 
 public class JwtProviderTests {
@@ -27,7 +29,7 @@ public class JwtProviderTests {
     }
 
     @Test
-    void testGenerateAndValidateToken() {
+    void validateTokenReturnsTrueForGeneratedToken() {
         String token = jwtProvider.generateToken(1L, Role.ADMIN);
 
         assertNotNull(token);
@@ -36,7 +38,7 @@ public class JwtProviderTests {
     }
 
     @Test
-    void testValidateTokenReturnsFalseForTamperedToken() {
+    void validateTokenReturnsFalseForTamperedToken() {
         String token = jwtProvider.generateToken(1L, Role.ADMIN);
         String tamperedToken = token + "a";
 
@@ -44,12 +46,38 @@ public class JwtProviderTests {
     }
 
     @Test
-    void testValidateTokenReturnsFalseForExpiredToken() throws InterruptedException {
+    void validateTokenReturnsFalseForExpiredToken() throws InterruptedException {
         ReflectionTestUtils.setField(jwtProvider, "expiration", 1L);
         String token = jwtProvider.generateToken(1L, Role.ADMIN);
 
         Thread.sleep(10);
 
         assertFalse(jwtProvider.validateToken(token));
+    }
+
+    @Test
+    void getRoleReturnsTokenRole() {
+        for (Role role : Role.values()) {
+            String token = jwtProvider.generateToken(1L, role);
+
+            assertEquals(role.name(), jwtProvider.getRole(token));
+        }
+    }
+
+    @Test
+    void getIdReturnsTokenSubjectAsLong() {
+        String token = jwtProvider.generateToken(42L, Role.CUSTOMER);
+
+        assertEquals(42L, jwtProvider.getId(token));
+    }
+
+    @Test
+    void validateTokenReturnsFalseForMalformedToken() {
+        assertFalse(jwtProvider.validateToken("not-a-jwt"));
+    }
+
+    @Test
+    void getIdThrowsForInvalidToken() {
+        assertThrows(JwtException.class, () -> jwtProvider.getId("not-a-jwt"));
     }
 }

@@ -1,6 +1,8 @@
 package se.voizter.felparkering.api.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -13,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import se.voizter.felparkering.api.model.AttendantGroup;
 import se.voizter.felparkering.api.model.User;
+import se.voizter.felparkering.api.testsupport.TestDataFactory;
 import se.voizter.felparkering.api.enums.Role;
 
 @DataJpaTest
@@ -25,10 +28,7 @@ public class UserRepositoryTests {
 
     @Test
     void canSaveAndFindByEmail() {
-        User user = new User();
-        user.setEmail("test-user@example.com");
-        user.setPassword("123abc");
-        user.setRole(Role.ADMIN);
+        User user = TestDataFactory.adminUser("test-user@example.com", "123abc");
         user.setAttendantGroup(null);
         
         userRepository.save(user);
@@ -39,7 +39,7 @@ public class UserRepositoryTests {
         assertEquals("test-user@example.com", result.get().getEmail());
         assertEquals("123abc", result.get().getPassword());
         assertEquals(Role.ADMIN, result.get().getRole());
-        assertEquals(null, result.get().getAttendantGroup());
+        assertNull(result.get().getAttendantGroup());
     }
 
     @Test
@@ -49,24 +49,29 @@ public class UserRepositoryTests {
     }
 
     @Test
+    void existsByEmail() {
+        User user = userRepository.save(
+            TestDataFactory.customerUser()
+        );
+
+        assertTrue(userRepository.existsByEmail(user.getEmail()));
+
+        assertFalse(userRepository.existsByEmail("missing@example.com"));
+    }
+
+    @Test
     void canSaveMultipleUsersWithDifferentRoles() {
-        User admin = new User();
-        admin.setEmail("adminr@example.com");
-        admin.setPassword("admin123");
-        admin.setRole(Role.ADMIN);
-        userRepository.save(admin);
+        userRepository.save(
+            TestDataFactory.adminUser("adminr@example.com", "admin123")
+        );
 
-        User attendant = new User();
-        attendant.setEmail("attendant@example.com");
-        attendant.setPassword("attendant123");
-        attendant.setRole(Role.ATTENDANT);
-        userRepository.save(attendant);
+        userRepository.save(
+            TestDataFactory.attendantUser("attendant@example.com", "attendant123")
+        );
 
-        User customer = new User();
-        customer.setEmail("customer@example.com");
-        customer.setPassword("customer123");
-        customer.setRole(Role.CUSTOMER);
-        userRepository.save(customer);
+        userRepository.save(
+            TestDataFactory.customerUser("customer@example.com", "customer123")
+        );
 
         assertTrue(userRepository.findByEmail("adminr@example.com").isPresent());
         assertTrue(userRepository.findByEmail("attendant@example.com").isPresent());
@@ -75,16 +80,11 @@ public class UserRepositoryTests {
 
     @Test
     void cannotSaveUserWithDuplicateEmail() {
-        User user1 = new User();
-        user1.setEmail("1@example.com");
-        user1.setPassword("123");
-        user1.setRole(Role.CUSTOMER);
-        userRepository.save(user1);
+        userRepository.save(
+            TestDataFactory.customerUser()
+        );
 
-        User user2 = new User();
-        user2.setEmail("1@example.com");
-        user2.setPassword("321");
-        user2.setRole(Role.CUSTOMER);
+        User user2 = TestDataFactory.customerUser();
 
         assertThrows(DataIntegrityViolationException.class, () -> {
             userRepository.saveAndFlush(user2);
@@ -110,7 +110,7 @@ public class UserRepositoryTests {
         });
 
         User user3 = new User();
-        user1.setEmail("1@example.com");
+        user3.setEmail("1@example.com");
         user3.setPassword("123");
         
         assertThrows(DataIntegrityViolationException.class, () -> {
@@ -119,19 +119,16 @@ public class UserRepositoryTests {
     }
 
     @Test 
-    void canSaveReportWithAttendantGroup() {
-        AttendantGroup group = new AttendantGroup();
-        group.setName("Testgruppen");
-        AttendantGroup savedGroup = groupRepository.save(group);
+    void canSaveUserWithAttendantGroup() {
+        AttendantGroup group = groupRepository.save(
+            TestDataFactory.attendantGroup("Testgruppen")
+        );
 
-        User user = new User();
-        user.setEmail("assigned@example.com");
-        user.setPassword("secure");
-        user.setRole(Role.ATTENDANT);
-        user.setAttendantGroup(savedGroup);
-        User savedUser = userRepository.save(user);
+        User user = userRepository.save(
+            TestDataFactory.attendantUser(group)
+        );
 
-        assertEquals("Testgruppen", savedUser.getAttendantGroup().getName());
+        assertEquals("Testgruppen", user.getAttendantGroup().getName());
     }
 }
 

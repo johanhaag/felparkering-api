@@ -1,4 +1,4 @@
-name: CI (Java)
+name: CI
 
 on:
     push:
@@ -7,7 +7,7 @@ on:
         branches: ["**"]
 
 jobs:
-    test:
+    backend-test:
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout
@@ -25,6 +25,10 @@ jobs:
             -   name: Build and test with Gradle
                 run: ./gradlew --no-daemon clean test
                 working-directory: backend
+                env:
+                    JWT_SECRET: test-secret-key-that-is-long-enough-for-hs256
+                    JWT_EXPIRATION: 3600000
+                    OPEN_ROUTE_SERVICE_API: test-api-key
 
             -   name: Upload test results
                 if: always()
@@ -35,3 +39,17 @@ jobs:
                         **/build/reports/tests/**
                         **/build/test-results/**
                     if-no-files-found: ignore
+
+    openapi-validate:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v5
+
+            -   name: Setup Node
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '22'
+            
+            -   name: Validate OpenAPI spec
+                run: npx --yes @redocly/cli lint backend/docs/api-spec.yaml

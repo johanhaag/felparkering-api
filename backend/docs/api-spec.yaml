@@ -2,8 +2,10 @@ openapi: 3.0.0
 info:
   title: Felparkering API
   description: Rest API för att hantera felparkerade fordon
-  contact: {}
   version: '1.0'
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: http://localhost:8080
     variables: {}
@@ -129,9 +131,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
-                  - $ref: '#/components/schemas/ErrorPasswordsDontMatch'
+                $ref: '#/components/schemas/ErrorResponse'
               examples:
                 missingCredentials: 
                   summary: Missing credentials
@@ -188,7 +188,7 @@ paths:
                 street:
                   type: string
                   example: Södra vägen
-                houseNumber:
+                houseNumbers:
                   type: string
                   example: "1"
                 city:
@@ -211,10 +211,10 @@ paths:
                   - $ref: '#/components/schemas/ReportCreatedResponse'
                   - example:
                       message: Report created successfully
-                      createdOn: '2025-06-17T14:22:00'
+                      createdOn: '2025-06-17T14:22:00Z'
               example:
                 message: Report created successfully
-                createdOn: '2025-06-17T14:22:00'
+                createdOn: '2025-06-17T14:22:00Z'
         '400':
           description: Bad Request
           headers: {}
@@ -309,7 +309,7 @@ paths:
                     address:
                         id: 102
                         street: Norra vägen
-                        houseNumber:
+                        houseNumbers:
                           - "3"
                         city: Stad
                         latitude: 13.91
@@ -321,8 +321,8 @@ paths:
                       id: 1
                       name: Stockholm Södra
                     assignedToId: 7
-                    createdOn: '2025-06-17T15:17:00'
-                    updatedOn: '2025-06-17T15:17:00'
+                    createdOn: '2025-06-17T15:17:00Z'
+                    updatedOn: '2025-06-17T15:17:00Z'
                     status: NEW   
               example:
                 - id: 12
@@ -348,7 +348,7 @@ paths:
                   address:
                       id: 102
                       street: Norra vägen
-                      houseNumber:
+                      houseNumbers:
                         - "3"
                       city: Stad
                       latitude: 13.91
@@ -360,8 +360,8 @@ paths:
                     id: 1
                     name: Stockholm Södra
                   assignedToId: 7
-                  createdOn: '2025-06-17T15:17:00'
-                  updatedOn: '2025-06-17T15:17:00'
+                  createdOn: '2025-06-17T15:17:00Z'
+                  updatedOn: '2025-06-17T15:17:00Z'
                   status: NEW      
         '401':
           description: Unauthorized
@@ -432,27 +432,43 @@ paths:
                   - $ref: '#/components/schemas/Report'
                   - example:
                       id: 12
-                      location: Södra vägen 1, Stad
+                      address:
+                        id: 101
+                        street: Södra vägen
+                        houseNumbers:
+                          - "1"
+                        city: Stad
+                        latitude: 59.3293
+                        longitude: 18.0686
+                        distanceFromCity: 120
                       licensePlate: ABC123
                       category: BLOCKERAR_UTFART
                       attendantGroup:
                         id: 1
                         name: Stockholm Södra
                       assignedToId: 7
-                      createdOn: '2025-06-17T14:22:00'
-                      updatedOn: '2025-06-17T14:22:00'
+                      createdOn: '2025-06-17T14:22:00Z'
+                      updatedOn: '2025-06-17T14:22:00Z'
                       status: NEW
               example:
                 id: 12
-                location: Södra vägen 1, Stad
+                address:
+                  id: 101
+                  street: Södra vägen
+                  houseNumbers:
+                    - "1"
+                  city: Stad
+                  latitude: 59.3293
+                  longitude: 18.0686
+                  distanceFromCity: 120
                 licensePlate: ABC123
                 category: BLOCKERAR_UTFART
                 attendantGroup:
                   id: 1
                   name: Stockholm Södra
                 assignedToId: 7
-                createdOn: '2025-06-17T14:22:00'
-                updatedOn: '2025-06-17T14:22:00'
+                createdOn: '2025-06-17T14:22:00Z'
+                updatedOn: '2025-06-17T14:22:00Z'
                 status: NEW
         '401':
           description: Unauthorized
@@ -533,7 +549,7 @@ paths:
                 $ref: '#/components/schemas/ReportUpdatedResponse'
                 example:
                   message: Report updated successfully
-                  createdOn: '2025-06-17T14:22:00'
+                  createdOn: '2025-06-17T14:22:00Z'
         '403':
           description: Forbidden
           headers: {}
@@ -664,7 +680,6 @@ paths:
                   - id: 1
                     email: Stockholm Södra
                     role: CUSTOMER
-                    attendantGroup: null
                   - id: 7
                     email: Stockholm Norra
                     role: ATTENDANT
@@ -867,6 +882,16 @@ components:
         user:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User logged in successfully
+    ErrorResponse:
+      title: ErrorResponse
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+      example:
+        error: Bad request
     ErrorMissingCredentials:
       title: ErrorMissingCredentials
       required:
@@ -907,20 +932,11 @@ components:
           type: string
       example:
         error: User already exists
-    ErrorPasswordsDontMatch:
-      title: ErrorPasswordsDontMatch
-      required:
-        - message
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Password and confirmation does not match
     RegisterResponse:
       title: RegisterResponse
       required:
-        - token
+        - user
+        - message
       type: object
       properties:
         user:
@@ -944,7 +960,7 @@ components:
           type: string
       example:
         message: Report created successfully
-        createdOn: '2025-06-17T14:22:00'
+        createdOn: '2025-06-17T14:22:00Z'
     ReportUpdatedResponse:
       title: ReportUpdatedResponse
       required:
@@ -958,7 +974,7 @@ components:
           type: string
       example:
         message: Report updated successfully
-        updatedOn: '2025-06-17T14:22:00'
+        updatedOn: '2025-06-17T14:22:00Z'
     AttendantGroup:
       title: AttendantGroup
       required:
@@ -1076,6 +1092,7 @@ components:
       example:
         id: 12
         address:
+          id: 101
           street: Södra vägen
           houseNumbers:
             - "1"
@@ -1089,8 +1106,8 @@ components:
           id: 1
           name: Stockholm Södra
         assignedToId: 7
-        createdOn: '2025-06-17T14:22:00'
-        updatedOn: '2025-06-17T14:22:00'
+        createdOn: '2025-06-17T14:22:00Z'
+        updatedOn: '2025-06-17T14:22:00Z'
         status: NEW
     AttendantCreatedResponse:
       title: AttendantCreatedResponse
@@ -1118,7 +1135,6 @@ components:
         - id
         - email
         - role
-        - attendantGroup
       type: object
       properties:
         id:
@@ -1129,13 +1145,13 @@ components:
         role:
           type: string
         attendantGroup:
-          oneOf:
-            - allOf:
-                - $ref: '#/components/schemas/AttendantGroup'
-                - example:
-                    id: 1
-                    name: Stockholm Södra
-            - nullable: true
+          type: object
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/AttendantGroup'
+            - example:
+                id: 1
+                name: Stockholm Södra
       example:
           id: 7
           email: Stockholm Norra
@@ -1171,5 +1187,8 @@ components:
 security: []
 tags:
   - name: Auth
+    description: Authentication endpoints
   - name: Reports
+    description: Report management endpoints
   - name: Admin
+    description: Admin management endpoints
