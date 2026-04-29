@@ -25,6 +25,10 @@ jobs:
             -   name: Build and test with Gradle
                 run: ./gradlew --no-daemon clean test
                 working-directory: backend
+                env:
+                    JWT_SECRET: test-secret-key-that-is-long-enough-for-hs256
+                    JWT_EXPIRATION: 3600000
+                    OPEN_ROUTE_SERVICE_API: test-api-key
 
             -   name: Upload test results
                 if: always()
