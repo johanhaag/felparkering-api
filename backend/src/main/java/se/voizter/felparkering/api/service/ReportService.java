@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
+import se.voizter.felparkering.api.dto.AddressDto;
+import se.voizter.felparkering.api.dto.AttendantGroupDto;
 import se.voizter.felparkering.api.dto.ReportDetailDto;
 import se.voizter.felparkering.api.dto.ReportRequest;
 import se.voizter.felparkering.api.dto.UserRequest;
@@ -185,10 +187,10 @@ public class ReportService {
         Long assigneeId = report.getAssignedTo() != null ? report.getAssignedTo().getId() : null;
         return new ReportDetailDto(
             report.getId(),
-            report.getAddress(),
+            AddressDto.fromEntity(report.getAddress()),
             report.getLicensePlate(),
             report.getCategory(),
-            report.getAttendantGroup(),
+            AttendantGroupDto.fromEntity(report.getAttendantGroup()),
             assigneeId,
             report.getCreatedOn(),
             report.getUpdatedOn(),

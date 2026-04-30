@@ -1144,7 +1144,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Report'
+            $ref: '#/components/schemas/ReportDetailDto'
         page:
           type: integer
           format: int32
@@ -1209,7 +1209,7 @@ components:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/Report'
+          $ref: '#/components/schemas/ReportDetailDto'
         message:
           type: string
       example:
@@ -1234,8 +1234,8 @@ components:
           updatedOn: '2025-06-17T14:22:00Z'
           status: NEW
         message: Report fetched successfully
-    AttendantGroup:
-      title: AttendantGroup
+    AttendantGroupDto:
+      title: AttendantGroupDto
       required:
         - id
         - name
@@ -1249,8 +1249,8 @@ components:
       example:
         id: 1
         name: Stockholm Södra
-    Address:
-      title: Address
+    AddressDto:
+      title: AddressDto
       required:
         - id
         - longitude
@@ -1415,8 +1415,8 @@ components:
                   - [18.0686, 59.3293]
                   - [18.0649, 59.3326]
         message: Route fetched successfully
-    Report:
-      title: Report
+    ReportDetailDto:
+      title: ReportDetailDto
       required:
         - id
         - address
@@ -1433,13 +1433,13 @@ components:
           type: integer
           format: int64
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: '#/components/schemas/AddressDto'
         licensePlate:
           type: string
         category:
           type: string
         attendantGroup:
-          $ref: '#/components/schemas/AttendantGroup'
+          $ref: '#/components/schemas/AttendantGroupDto'
         assignedToId:
           type: integer
           format: int64
@@ -1492,7 +1492,7 @@ components:
             - ATTENDANT
             - CUSTOMER
         attendantGroup:
-          $ref: '#/components/schemas/AttendantGroup'
+          $ref: '#/components/schemas/AttendantGroupDto'
       example:
         email: vakt@example.com
         password: secret123

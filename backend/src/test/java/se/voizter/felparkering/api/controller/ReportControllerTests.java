@@ -30,6 +30,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import se.voizter.felparkering.api.configuration.SecurityConfig;
+import se.voizter.felparkering.api.dto.AddressDto;
+import se.voizter.felparkering.api.dto.AttendantGroupDto;
 import se.voizter.felparkering.api.dto.ReportDetailDto;
 import se.voizter.felparkering.api.dto.ReportRequest;
 import se.voizter.felparkering.api.enums.Message;
@@ -277,10 +279,10 @@ public class ReportControllerTests {
         AttendantGroup group = TestDataFactory.attendantGroup(1L, "Testgruppen");
         return new ReportDetailDto(
             id,
-            address,
+            AddressDto.fromEntity(address),
             "ABC123",
             ParkingViolationCategory.NO_PARKING_AREA,
-            group,
+            AttendantGroupDto.fromEntity(group),
             null,
             Instant.parse("2026-04-30T10:00:00Z"),
             Instant.parse("2026-04-30T10:05:00Z"),
