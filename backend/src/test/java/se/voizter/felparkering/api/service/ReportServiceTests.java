@@ -82,10 +82,14 @@ public class ReportServiceTests {
             reportRequest(10L, "Kungsgatan", "15", "Goteborg", "abc123", ParkingViolationCategory.NO_PARKING_FEE_PAID)
         );
 
-        assertEquals(address, result.address());
+        assertEquals(address.getId(), result.address().id());
+        assertEquals(address.getStreet(), result.address().street());
+        assertEquals(address.getHouseNumbers(), result.address().houseNumbers());
+        assertEquals(address.getCity(), result.address().city());
         assertEquals("ABC123", result.licensePlate());
         assertEquals(ParkingViolationCategory.NO_PARKING_FEE_PAID, result.category());
-        assertEquals(group, result.attendantGroup());
+        assertEquals(group.getId(), result.attendantGroup().id());
+        assertEquals(group.getName(), result.attendantGroup().name());
         assertEquals(Status.NEW, result.status());
     }
 
@@ -517,7 +521,8 @@ public class ReportServiceTests {
         assertEquals(100L, dto.id());
         assertEquals("ABC123", dto.licensePlate());
         assertEquals(ParkingViolationCategory.NO_PARKING_AREA, dto.category());
-        assertEquals(group, dto.attendantGroup());
+        assertEquals(group.getId(), dto.attendantGroup().id());
+        assertEquals(group.getName(), dto.attendantGroup().name());
         assertEquals(3L, dto.assignedToId());
         assertEquals(Status.ASSIGNED, dto.status());
     }

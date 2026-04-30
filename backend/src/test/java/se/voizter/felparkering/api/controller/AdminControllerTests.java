@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import se.voizter.felparkering.api.configuration.SecurityConfig;
 import se.voizter.felparkering.api.dto.AttendantGroupDetailDto;
 import se.voizter.felparkering.api.dto.UserAdminDetailDto;
+import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.enums.Role;
 import se.voizter.felparkering.api.model.User;
 import se.voizter.felparkering.api.security.JwtProvider;
 import se.voizter.felparkering.api.service.AdminService;
+import se.voizter.felparkering.api.testsupport.OpenApiValidation;
 import se.voizter.felparkering.api.testsupport.TestDataFactory;
 
 @WebMvcTest(AdminController.class)
@@ -49,10 +52,13 @@ public class AdminControllerTests {
             .thenReturn(List.of(new UserAdminDetailDto(1L, Role.ADMIN)));
 
         mockMvc.perform(get("/admin/users")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .header("Authorization", "Bearer test-token")
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.users[0].id").value(1))
-            .andExpect(jsonPath("$.users[0].role").value("ADMIN"));
+            .andExpect(jsonPath("$.data[0].id").value(1))
+            .andExpect(jsonPath("$.data[0].role").value("ADMIN"))
+            .andExpect(jsonPath("$.message").value(Message.ADMIN_USERS_FETCHED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -75,10 +81,14 @@ public class AdminControllerTests {
 
         mockMvc.perform(post("/admin/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user").value("User with id: 7 was created."));
+            .header("Authorization", "Bearer test-token")
+            .content(objectMapper.writeValueAsString(adminUserCreateRequest()))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.id").value(7))
+            .andExpect(jsonPath("$.data.role").value("ATTENDANT"))
+            .andExpect(jsonPath("$.message").value(Message.USER_CREATED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -88,9 +98,9 @@ public class AdminControllerTests {
 
         mockMvc.perform(post("/admin/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
-            .andExpect(status().isOk());
+            .content(objectMapper.writeValueAsString(adminUserCreateRequest()))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .andExpect(status().isCreated());
 
         verify(adminService).createAttendant(any(User.class));
     }
@@ -98,9 +108,12 @@ public class AdminControllerTests {
     @Test
     void deleteUserReturnsOkForAdmin() throws Exception {
         mockMvc.perform(delete("/admin/users/7")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .header("Authorization", "Bearer test-token")
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("User with id: 7 was deleted."));
+            .andExpect(jsonPath("$.data.id").value(7))
+            .andExpect(jsonPath("$.message").value(Message.USER_DELETED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -118,9 +131,12 @@ public class AdminControllerTests {
             .thenReturn(List.of(new AttendantGroupDetailDto("Testgruppen", List.of())));
 
         mockMvc.perform(get("/admin/attendants")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .header("Authorization", "Bearer test-token")
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.attendantGroups[0].name").value("Testgruppen"));
+            .andExpect(jsonPath("$.data[0].name").value("Testgruppen"))
+            .andExpect(jsonPath("$.message").value(Message.ADMIN_GROUPS_FETCHED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     private static UsernamePasswordAuthenticationToken auth(Long id, String role) {
@@ -128,6 +144,18 @@ public class AdminControllerTests {
             id,
             null,
             List.of(new SimpleGrantedAuthority(role))
+        );
+    }
+
+    private static Map<String, Object> adminUserCreateRequest() {
+        return Map.of(
+            "email", "vakt@example.com",
+            "password", "password123",
+            "role", "ATTENDANT",
+            "attendantGroup", Map.of(
+                "id", 1L,
+                "name", "Stockholm Sodra"
+            )
         );
     }
 }

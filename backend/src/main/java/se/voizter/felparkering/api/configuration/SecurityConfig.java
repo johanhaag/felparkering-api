@@ -21,7 +21,12 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.http.HttpServletResponse;
+import se.voizter.felparkering.api.dto.ErrorBody;
+import se.voizter.felparkering.api.dto.ErrorResponse;
+import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.security.JwtFilter;
 import se.voizter.felparkering.api.security.JwtProvider;
 
@@ -34,9 +39,11 @@ import se.voizter.felparkering.api.security.JwtProvider;
 public class SecurityConfig {
     
     private final JwtProvider jwtProvider;
+    private final ObjectMapper objectMapper;
 
-    public SecurityConfig(JwtProvider jwtProvider) {
+    public SecurityConfig(JwtProvider jwtProvider, ObjectMapper objectMapper) {
         this.jwtProvider = jwtProvider;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -66,14 +73,20 @@ public class SecurityConfig {
         .addFilterAfter(new JwtFilter(jwtProvider), SecurityContextHolderFilter.class)
         .exceptionHandling(e -> e
             .authenticationEntryPoint((req, res, ex) -> {
-                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                res.getWriter().write("{\"error\":\"Missing or invalid token\"}");
+                writeError(
+                    res,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    Message.UNAUTHORIZED.name(),
+                    Message.UNAUTHORIZED.toString()
+                );
             })
             .accessDeniedHandler((req, res, ex) -> {
-                res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                res.getWriter().write("{\"error\":\"Access Denied\"}");
+                writeError(
+                    res, 
+                    HttpServletResponse.SC_FORBIDDEN, 
+                    Message.ACCESS_DENIED.name(),
+                     Message.ACCESS_DENIED.toString()
+                );
             })
         );
         return http.build();
@@ -106,4 +119,18 @@ public class SecurityConfig {
             return source;
     }
 
+    private void writeError(
+        HttpServletResponse response,
+        int status,
+        String code,
+        String message
+    ) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        objectMapper.writeValue(
+            response.getOutputStream(),
+            new ErrorResponse(new ErrorBody(code, message))
+        );
+    }
 }

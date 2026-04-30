@@ -49,7 +49,7 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user.token").value("jwt-token"))
+            .andExpect(jsonPath("$.data.token").value("jwt-token"))
             .andExpect(jsonPath("$.message").value(Message.LOGIN.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
@@ -93,7 +93,7 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value(Message.USER_NOT_FOUND.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.USER_NOT_FOUND.toString()));
     }
 
     @Test
@@ -105,19 +105,19 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
             .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.error").value(Message.INVALID_CREDENTIALS.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.INVALID_CREDENTIALS.toString()));
     }
 
     @Test
-    void registerReturnsOkWithUserAndMessage() throws Exception {
+    void registerReturnsCreatedWithUserAndMessage() throws Exception {
         when(authService.register(any(RegisterRequest.class)))
             .thenReturn(new UserDetailDto("jwt-token"));
 
         mockMvc.perform(post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user.token").value("jwt-token"))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.token").value("jwt-token"))
             .andExpect(jsonPath("$.message").value(Message.REGISTER.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
@@ -161,7 +161,7 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error").value(Message.USER_EXISTS.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.USER_EXISTS.toString()));
     }
 
     @Test
@@ -173,6 +173,6 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error").value(Message.PASSWORD_MISMATCH.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.PASSWORD_MISMATCH.toString()));
     }
 }

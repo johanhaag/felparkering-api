@@ -44,7 +44,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
               example:
-                user:
+                data:
                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
                 message: User logged in successfully
         '400':
@@ -55,7 +55,7 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
+                  - $ref: '#/components/schemas/ErrorResponse'
               examples:
                 validationError:
                   summary: Validation error
@@ -66,31 +66,31 @@ paths:
                 missingCredentials:
                   summary: Missing credentials
                   value:
-                    error: Missing credentials
+                    error:
+                      code: BAD_REQUEST
+                      message: Missing credentials
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorInvalidCredentials'
-                  - example:
-                      error: Invalid credentials
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Invalid credentials
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: Invalid credentials
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: User not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: User not found
+                error:
+                  code: NOT_FOUND
+                  message: User not found
       deprecated: false
       security: []
   /register:
@@ -122,15 +122,15 @@ paths:
                   type: string
                   example: abc123
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Created
           headers: {}
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisterResponse'
               example:
-                  user: 
+                  data: 
                     token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
                   message: User registered successfully
         '400':
@@ -152,24 +152,26 @@ paths:
                 missingCredentials: 
                   summary: Missing credentials
                   value:
-                    error: Missing credentials
+                    error:
+                      code: BAD_REQUEST
+                      message: Missing credentials
                 passwordMismatch:
                   summary: Password and confirmation does not match
                   value:
-                    error: Password and confirmation does not match
+                    error:
+                      code: BAD_REQUEST
+                      message: Password and confirmation does not match
         '409':
           description: Conflict
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorConflict'
-                  - example:
-                      message: 
-                      error: User already exists
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: User already exists
+                error:
+                  code: CONFLICT
+                  message: User already exists
       deprecated: false
   /reports:
     post:
@@ -223,10 +225,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReportCreatedResponse'
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                message: Report created successfully
-                report:
+                data:
                   id: 12
                   address:
                     id: 101
@@ -246,42 +247,42 @@ paths:
                   createdOn: '2025-06-17T14:22:00Z'
                   updatedOn: '2025-06-17T14:22:00Z'
                   status: NEW
+                message: Report created successfully
         '400':
           description: Bad Request
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
-                  - example:
-                      error: Missing credentials
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing credentials
+                errors:
+                  - field: licensePlate
+                    message: License plate is required
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to create a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to create a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
       deprecated: false
       security:
         - bearer: []
@@ -323,7 +324,8 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            type: integer
+            format: int64
             default: createdOn
         - name: sortDir
           in: query
@@ -362,56 +364,56 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedReportResponse'
+                $ref: '#/components/schemas/PagedReportsResponse'
               example:
-                items:
-                  - id: 12
-                    address:
-                      id: 101
-                      street: Södra vägen
-                      houseNumbers:
-                        - "1"
-                      city: Stockholm
-                      latitude: 59.33
-                      longitude: 18.06
-                      distanceFromCity: 120
-                    licensePlate: ABC123
-                    category: NO_PARKING_AREA
-                    attendantGroup:
-                      id: 1
-                      name: Stockholm Södra
-                    assignedToId: 7
-                    createdOn: '2025-06-17T14:22:00Z'
-                    updatedOn: '2025-06-17T14:22:00Z'
-                    status: NEW
-                page: 0
-                size: 10
-                totalElements: 1
-                totalPages: 1
+                data:
+                  items:
+                    - id: 12
+                      address:
+                        id: 101
+                        street: Södra vägen
+                        houseNumbers:
+                          - "1"
+                        city: Stockholm
+                        latitude: 59.33
+                        longitude: 18.06
+                        distanceFromCity: 120
+                      licensePlate: ABC123
+                      category: NO_PARKING_AREA
+                      attendantGroup:
+                        id: 1
+                        name: Stockholm Södra
+                      assignedToId: 7
+                      createdOn: '2025-06-17T14:22:00Z'
+                      updatedOn: '2025-06-17T14:22:00Z'
+                      status: NEW
+                  page: 0
+                  size: 10
+                  totalElements: 1
+                  totalPages: 1
+                message: Reports fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get all reports
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get all reports
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
       deprecated: false
       security:
         - bearer: []
@@ -453,84 +455,62 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Report'
-                  - example:
-                      id: 12
-                      address:
-                        id: 101
-                        street: Södra vägen
-                        houseNumbers:
-                          - "1"
-                        city: Stad
-                        latitude: 59.3293
-                        longitude: 18.0686
-                        distanceFromCity: 120
-                      licensePlate: ABC123
-                      category: BLOCKERAR_UTFART
-                      attendantGroup:
-                        id: 1
-                        name: Stockholm Södra
-                      assignedToId: 7
-                      createdOn: '2025-06-17T14:22:00Z'
-                      updatedOn: '2025-06-17T14:22:00Z'
-                      status: NEW
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                id: 12
-                address:
-                  id: 101
-                  street: Södra vägen
-                  houseNumbers:
-                    - "1"
-                  city: Stad
-                  latitude: 59.3293
-                  longitude: 18.0686
-                  distanceFromCity: 120
-                licensePlate: ABC123
-                category: BLOCKERAR_UTFART
-                attendantGroup:
-                  id: 1
-                  name: Stockholm Södra
-                assignedToId: 7
-                createdOn: '2025-06-17T14:22:00Z'
-                updatedOn: '2025-06-17T14:22:00Z'
-                status: NEW
+                data:
+                  id: 12
+                  address:
+                    id: 101
+                    street: Södra vägen
+                    houseNumbers:
+                      - "1"
+                    city: Stad
+                    latitude: 59.3293
+                    longitude: 18.0686
+                    distanceFromCity: 120
+                  licensePlate: ABC123
+                  category: NO_PARKING_AREA
+                  attendantGroup:
+                    id: 1
+                    name: Stockholm Södra
+                  assignedToId: 7
+                  createdOn: '2025-06-17T14:22:00Z'
+                  updatedOn: '2025-06-17T14:22:00Z'
+                  status: NEW
+                message: Report fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: Report not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report not found
+                error:
+                  code: NOT_FOUND
+                  message: Report not found
       deprecated: false
       security:
         - bearer: []
@@ -590,10 +570,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReportUpdatedResponse'
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                message: Report updated successfully
-                report:
+                data:
                   id: 12
                   address:
                     id: 101
@@ -612,20 +591,23 @@ paths:
                   assignedToId: null
                   createdOn: '2025-06-17T14:22:00Z'
                   updatedOn: '2025-06-17T14:22:00Z'
-                  status: NEW
+                  status: RESOLVED
+                message: Report updated successfully
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ErrorBadRequest'
+                  - $ref: '#/components/schemas/ErrorResponse'
                   - $ref: '#/components/schemas/ValidationErrorResponse'
               examples:
                 invalidStatus:
                   summary: Invalid status value
                   value:
-                    error: Invalid request parameter or value
+                    error:
+                      code: BAD_REQUEST
+                      message: Invalid request parameter or value
                 missingStatus:
                   summary: Missing status
                   value:
@@ -638,36 +620,33 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to update a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to update a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: Report not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report not found
+                error:
+                  code: NOT_FOUND
+                  message: Report not found
         '409':
           description: Conflict
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorConflict'
-                  - example:
-                      error: Report is already assigned to a different user
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report is already assigned to a different user
+                error:
+                  code: CONFLICT
+                  message: Report is already assigned to a different user
       deprecated: false
       security:
         - bearer: []
@@ -693,26 +672,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddressSuggestion'
+                $ref: '#/components/schemas/AddressSearchResponse'
               example:
-                - id: 101
-                  street: Södra vägen
-                  city: Stockholm
-                  houseNumber: "1"
-                - id: 101
-                  street: Södra vägen
-                  city: Stockholm
-                  houseNumber: "3"
+                data:
+                  - id: 101
+                    street: Södra vägen
+                    city: Stockholm
+                    houseNumber: "1"
+                  - id: 101
+                    street: Södra vägen
+                    city: Stockholm
+                    houseNumber: "3"
+                message: Addresses fetched successfully
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
       deprecated: false
       security:
         - bearer: []
@@ -747,36 +728,42 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RouteResponse'
+                $ref: '#/components/schemas/RouteApiResponse'
               example:
-                type: FeatureCollection
-                features:
-                  - type: Feature
-                    properties:
-                      summary:
-                        distance: 1200.5
-                        duration: 320.2
-                    geometry:
-                      type: LineString
-                      coordinates:
-                        - [18.0686, 59.3293]
-                        - [18.0649, 59.3326]
+                data:
+                  type: FeatureCollection
+                  features:
+                    - type: Feature
+                      properties:
+                        summary:
+                          distance: 1200.5
+                          duration: 320.2
+                      geometry:
+                        type: LineString
+                        coordinates:
+                          - [18.0686, 59.3293]
+                          - [18.0649, 59.3326]
+                message: Route fetched successfully
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorAccessDenied'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Access Denied
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
       deprecated: false
       security:
         - bearer: []
@@ -813,48 +800,51 @@ paths:
                 id: 1
                 name: Stockholm Södra
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Created
           headers: {}
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminUserCreatedResponse'
               example:
-                user: 'User with id: 7 was created.'
+                data:
+                  id: 7
+                  role: ATTENDANT
+                message: User was created successfully
         '400':
           description: Bad Request
           headers: {}
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Invalid request parameter or value
+                error:
+                  code: BAD_REQUEST
+                  message: Invalid request parameter or value
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to create a user
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to create a user
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
       deprecated: false
       security:
         - bearer: []
@@ -887,35 +877,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminUsersResponse'
               example:
-                users:
+                data:
                   - id: 1
                     role: CUSTOMER
                   - id: 7
                     role: ATTENDANT
+                message: Users fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get all users
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get all users
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
       deprecated: false
       security:
         - bearer: []
@@ -949,7 +938,8 @@ paths:
           required: true
           style: simple
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -957,48 +947,44 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/DeletedResponse'
-                  - example:
-                      message: User was successfully deleted
+                $ref: '#/components/schemas/DeletedUserResponse'
               example:
-                message: User was successfully deleted
+                data:
+                  id: 7
+                message: User deleted successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to delete a user
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to delete a user
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: User not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: User not found
+                error:
+                  code: NOT_FOUND
+                  message: User not found
       deprecated: false
       security:
         - bearer: []
@@ -1032,37 +1018,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminAttendantGroupsResponse'
               example:
-                attendantGroups:
+                data:
                   - name: Stockholm Södra
                     attendants:
                       - id: 7
                         role: ATTENDANT
                   - name: Stockholm Norra
                     attendants: []
+                message: Attendant groups fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get all attendant groups
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get all attendant groups
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
       deprecated: false
       security:
         - bearer: []
@@ -1071,16 +1056,16 @@ components:
     LoginResponse:
       title: LoginResponse
       required:
-        - user
+        - data
         - message
       type: object
       properties:
-        user:
+        data:
           $ref: '#/components/schemas/UserDetailDto'
         message:
           type: string
       example:
-        user:
+        data:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User logged in successfully
     ValidationErrorResponse:
@@ -1112,72 +1097,38 @@ components:
         - error
       properties:
         error:
-          type: string
+          $ref: '#/components/schemas/ErrorBody'
       example:
-        error: Bad request
-    ErrorBadRequest:
-      title: ErrorBadRequest
-      required:
-        - error
-      type: object
-      properties:
         error:
-          type: string
-      example:
-        error: Invalid request parameter or value
-    ErrorMissingCredentials:
-      title: ErrorMissingCredentials
-      required:
-        - error
+          code: BAD_REQUEST
+          message: Bad request
+    ErrorBody:
+      title: ErrorBody
       type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Missing credentials
-    ErrorInvalidCredentials:
-      title: ErrorInvalidCredentials
       required:
-        - error
-      type: object
+        - code
+        - message
       properties:
-        error:
+        code:
+          type: string
+        message:
           type: string
       example:
-        error: Invalid credentials
-    ErrorNotFound:
-      title: ErrorNotFound
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: User not found
-    ErrorConflict:
-      title: ErrorConflict
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: User already exists
+        code: BAD_REQUEST
+        message: Bad request
     RegisterResponse:
       title: RegisterResponse
       required:
-        - user
+        - data
         - message
       type: object
       properties:
-        user:
+        data:
           $ref: '#/components/schemas/UserDetailDto'
         message:
           type: string
       example:
-        user:
+        data:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User registered successfully
     PagedReportResponse:
@@ -1193,7 +1144,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Report'
+            $ref: '#/components/schemas/ReportDetailDto'
         page:
           type: integer
           format: int32
@@ -1231,20 +1182,38 @@ components:
         size: 10
         totalElements: 1
         totalPages: 1
-    ReportCreatedResponse:
-      title: ReportCreatedResponse
+    PagedReportsResponse:
+      title: PagedReportsResponse
       required:
+        - data
         - message
-        - report
       type: object
       properties:
+        data:
+          $ref: '#/components/schemas/PagedReportResponse'
         message:
           type: string
-        report:
-          $ref: '#/components/schemas/Report'
       example:
-        message: Report created successfully
-        report:
+        data:
+          items: []
+          page: 0
+          size: 10
+          totalElements: 0
+          totalPages: 0
+        message: Reports fetched successfully
+    ReportResponse:
+      title: ReportResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ReportDetailDto'
+        message:
+          type: string
+      example:
+        data:
           id: 12
           address:
             id: 101
@@ -1264,43 +1233,9 @@ components:
           createdOn: '2025-06-17T14:22:00Z'
           updatedOn: '2025-06-17T14:22:00Z'
           status: NEW
-    ReportUpdatedResponse:
-      title: ReportUpdatedResponse
-      required:
-        - message
-        - report
-      type: object
-      properties:
-        message:
-          type: string
-        updatedOn:
-          type: string
-        report:
-          $ref: '#/components/schemas/Report'
-      example:
-        message: Report updated successfully
-        report:
-          id: 12
-          address:
-            id: 101
-            longitude: 18.06
-            latitude: 59.33
-            street: Södra vägen
-            houseNumbers:
-              - "1"
-            city: Stockholm
-            distanceFromCity: 120
-          licensePlate: ABC123
-          category: NO_PARKING_AREA
-          attendantGroup:
-            id: 1
-            name: Stockholm Södra
-          assignedToId: null
-          createdOn: '2025-06-17T14:22:00Z'
-          updatedOn: '2025-06-17T14:22:00Z'
-          status: NEW
-    AttendantGroup:
-      title: AttendantGroup
+        message: Report fetched successfully
+    AttendantGroupDto:
+      title: AttendantGroupDto
       required:
         - id
         - name
@@ -1314,28 +1249,8 @@ components:
       example:
         id: 1
         name: Stockholm Södra
-    ErrorUnauthorized:
-      title: ErrorUnauthorized
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Missing or invalid token
-    ErrorAccessDenied:
-      title: ErrorAccessDenied
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: You do not have permission to create a report
-    Address:
-      title: Address
+    AddressDto:
+      title: AddressDto
       required:
         - id
         - longitude
@@ -1398,6 +1313,26 @@ components:
         street: Södra vägen
         city: Stockholm
         houseNumber: "1"
+    AddressSearchResponse:
+      title: AddressSearchResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressSuggestion'
+        message:
+          type: string
+      example:
+        data:
+          - id: 101
+            street: Södra vägen
+            city: Stockholm
+            houseNumber: "1"
+        message: Addresses fetched successfully
     RouteRequest:
       title: RouteRequest
       required:
@@ -1454,8 +1389,34 @@ components:
               coordinates:
                 - [18.0686, 59.3293]
                 - [18.0649, 59.3326]
-    Report:
-      title: Report
+    RouteApiResponse:
+      title: RouteApiResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RouteResponse'
+        message:
+          type: string
+      example:
+        data:
+          type: FeatureCollection
+          features:
+            - type: Feature
+              properties:
+                summary:
+                  distance: 1200.5
+                  duration: 320.2
+              geometry:
+                type: LineString
+                coordinates:
+                  - [18.0686, 59.3293]
+                  - [18.0649, 59.3326]
+        message: Route fetched successfully
+    ReportDetailDto:
+      title: ReportDetailDto
       required:
         - id
         - address
@@ -1472,13 +1433,13 @@ components:
           type: integer
           format: int64
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: '#/components/schemas/AddressDto'
         licensePlate:
           type: string
         category:
           type: string
         attendantGroup:
-          $ref: '#/components/schemas/AttendantGroup'
+          $ref: '#/components/schemas/AttendantGroupDto'
         assignedToId:
           type: integer
           format: int64
@@ -1531,7 +1492,7 @@ components:
             - ATTENDANT
             - CUSTOMER
         attendantGroup:
-          $ref: '#/components/schemas/AttendantGroup'
+          $ref: '#/components/schemas/AttendantGroupDto'
       example:
         email: vakt@example.com
         password: secret123
@@ -1542,13 +1503,19 @@ components:
     AdminUserCreatedResponse:
       title: AdminUserCreatedResponse
       required:
-        - user
+        - data
+        - message
       type: object
       properties:
-        user:
+        data:
+          $ref: '#/components/schemas/UserAdminDetailDto'
+        message:
           type: string
       example:
-        user: 'User with id: 7 was created.'
+        data:
+          id: 7
+          role: ATTENDANT
+        message: User was created successfully
     UserAdminDetailDto:
       title: UserAdminDetailDto
       required:
@@ -1571,19 +1538,23 @@ components:
     AdminUsersResponse:
       title: AdminUsersResponse
       required:
-        - users
+        - data
+        - message
       type: object
       properties:
-        users:
+        data:
           type: array
           items:
             $ref: '#/components/schemas/UserAdminDetailDto'
+        message:
+          type: string
       example:
-        users:
+        data:
           - id: 1
             role: CUSTOMER
           - id: 7
             role: ATTENDANT
+        message: Users fetched successfully
     AttendantGroupDetailDto:
       title: AttendantGroupDetailDto
       required:
@@ -1606,19 +1577,49 @@ components:
     AdminAttendantGroupsResponse:
       title: AdminAttendantGroupsResponse
       required:
-        - attendantGroups
+        - data
+        - message
       type: object
       properties:
-        attendantGroups:
+        data:
           type: array
           items:
             $ref: '#/components/schemas/AttendantGroupDetailDto'
+        message:
+          type: string
       example:
-        attendantGroups:
+        data:
           - name: Stockholm Södra
             attendants:
               - id: 7
                 role: ATTENDANT
+        message: Attendant groups fetched successfully
+    DeletedUserDto:
+      title: DeletedUserDto
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+      example:
+        id: 7
+    DeletedUserResponse:
+      title: DeletedUserResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DeletedUserDto'
+        message:
+          type: string
+      example:
+        data:
+          id: 7
+        message: User deleted successfully
     UserDetailDto:
       title: UserDetailDto
       required:
@@ -1630,16 +1631,6 @@ components:
           description: JWT token där `sub` claim innehåller användarens id.
       example:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
-    DeletedResponse:
-      title: DeletedResponse
-      required:
-        - message
-      type: object
-      properties:
-        message:
-          type: string
-      example:
-        message: User was successfully deleted
   securitySchemes:
     bearer:
       type: http

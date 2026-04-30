@@ -30,6 +30,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import se.voizter.felparkering.api.configuration.SecurityConfig;
+import se.voizter.felparkering.api.dto.AddressDto;
+import se.voizter.felparkering.api.dto.AttendantGroupDto;
 import se.voizter.felparkering.api.dto.ReportDetailDto;
 import se.voizter.felparkering.api.dto.ReportRequest;
 import se.voizter.felparkering.api.enums.Message;
@@ -68,9 +70,11 @@ public class ReportControllerTests {
             .thenReturn(new PageImpl<>(List.of(reportDetail(12L)), PageRequest.of(0, 10), 1));
 
         mockMvc.perform(get("/reports")
+                .header("Authorization", "Bearer test-token")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].id").value(12));
+            .andExpect(jsonPath("$.data.items[0].id").value(12))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -117,8 +121,8 @@ public class ReportControllerTests {
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.message").value("Report created successfully"))
-            .andExpect(jsonPath("$.report.id").value(12))
-            .andExpect(jsonPath("$.report.createdOn").exists())
+            .andExpect(jsonPath("$.data.id").value(12))
+            .andExpect(jsonPath("$.data.createdOn").exists())
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
@@ -163,7 +167,7 @@ public class ReportControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.reportRequest()))
                 .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NO_PERMISSION.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NO_PERMISSION.toString()));
     }
 
     @Test
@@ -177,7 +181,7 @@ public class ReportControllerTests {
                 .header("Authorization", "Bearer test-token")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(12))
+            .andExpect(jsonPath("$.data.id").value(12))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
@@ -192,7 +196,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports/99")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NOT_FOUND.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NOT_FOUND.toString()));
     }
 
     @Test
@@ -206,7 +210,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports/12")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NO_PERMISSION.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NO_PERMISSION.toString()));
     }
 
     @Test
@@ -219,12 +223,14 @@ public class ReportControllerTests {
 
         mockMvc.perform(put("/reports/12")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer test-token")
                 .content(objectMapper.writeValueAsString(TestDataFactory.updateStatusRequest(Status.RESOLVED)))
                 .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Report updated successfully"))
-            .andExpect(jsonPath("$.report.id").value(12))
-            .andExpect(jsonPath("$.report.status").value(Status.RESOLVED.toString()));
+            .andExpect(jsonPath("$.data.id").value(12))
+            .andExpect(jsonPath("$.data.status").value(Status.RESOLVED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -257,7 +263,7 @@ public class ReportControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.updateStatusRequest(Status.ASSIGNED)))
                 .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_ALREADY_ASSIGNED.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_ALREADY_ASSIGNED.toString()));
     }
 
     private static UsernamePasswordAuthenticationToken auth(Long id, String role) {
@@ -277,10 +283,10 @@ public class ReportControllerTests {
         AttendantGroup group = TestDataFactory.attendantGroup(1L, "Testgruppen");
         return new ReportDetailDto(
             id,
-            address,
+            AddressDto.fromEntity(address),
             "ABC123",
             ParkingViolationCategory.NO_PARKING_AREA,
-            group,
+            AttendantGroupDto.fromEntity(group),
             null,
             Instant.parse("2026-04-30T10:00:00Z"),
             Instant.parse("2026-04-30T10:05:00Z"),
