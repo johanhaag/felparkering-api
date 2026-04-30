@@ -53,12 +53,20 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
                   - $ref: '#/components/schemas/ErrorMissingCredentials'
-                  - example:
-                      error: Missing credentials
-              example:
-                error: Missing credentials
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    errors:
+                      - field: email
+                        message: Invalid email address
+                missingCredentials:
+                  summary: Missing credentials
+                  value:
+                    error: Missing credentials
         '401':
           description: Unauthorized
           headers: {}
@@ -131,8 +139,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
               examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    errors:
+                      - field: email
+                        message: Invalid email address
                 missingCredentials: 
                   summary: Missing credentials
                   value:
@@ -148,7 +164,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/ErrorUserConflict'
+                  - $ref: '#/components/schemas/ErrorConflict'
                   - example:
                       message: 
                       error: User already exists
@@ -188,7 +204,7 @@ paths:
                 street:
                   type: string
                   example: Södra vägen
-                houseNumbers:
+                houseNumber:
                   type: string
                   example: "1"
                 city:
@@ -199,7 +215,7 @@ paths:
                   example: ABC123
                 category:
                   type: string
-                  example: BLOCKERAR_UTFART
+                  example: NO_PARKING_AREA
       responses:
         '201':
           description: Created
@@ -207,14 +223,29 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ReportCreatedResponse'
-                  - example:
-                      message: Report created successfully
-                      createdOn: '2025-06-17T14:22:00Z'
+                $ref: '#/components/schemas/ReportCreatedResponse'
               example:
                 message: Report created successfully
-                createdOn: '2025-06-17T14:22:00Z'
+                report:
+                  id: 12
+                  address:
+                    id: 101
+                    longitude: 18.06
+                    latitude: 59.33
+                    street: Södra vägen
+                    houseNumbers:
+                      - "1"
+                    city: Stockholm
+                    distanceFromCity: 120
+                  licensePlate: ABC123
+                  category: NO_PARKING_AREA
+                  attendantGroup:
+                    id: 1
+                    name: Stockholm Södra
+                  assignedToId: null
+                  createdOn: '2025-06-17T14:22:00Z'
+                  updatedOn: '2025-06-17T14:22:00Z'
+                  status: NEW
         '400':
           description: Bad Request
           headers: {}
@@ -273,7 +304,57 @@ paths:
             
         - `CUSTOMER`: Ser endast rapporter som de har skapat
       operationId: Getallreports
-      parameters: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: createdOn
+        - name: sortDir
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - NEW
+              - ASSIGNED
+              - RESOLVED
+              - CANCELLED
+        - name: assignedToId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: OK
@@ -281,11 +362,9 @@ paths:
           content:
             application/json:
               schema:
-                type: array
+                $ref: '#/components/schemas/PagedReportResponse'
+              example:
                 items:
-                  $ref: '#/components/schemas/Report'
-                description: ''
-                example:
                   - id: 12
                     address:
                       id: 101
@@ -297,7 +376,7 @@ paths:
                       longitude: 18.06
                       distanceFromCity: 120
                     licensePlate: ABC123
-                    category: BLOCKERAR_UTFART
+                    category: NO_PARKING_AREA
                     attendantGroup:
                       id: 1
                       name: Stockholm Södra
@@ -305,64 +384,10 @@ paths:
                     createdOn: '2025-06-17T14:22:00Z'
                     updatedOn: '2025-06-17T14:22:00Z'
                     status: NEW
-                  - id: 13
-                    address:
-                        id: 102
-                        street: Norra vägen
-                        houseNumbers:
-                          - "3"
-                        city: Stad
-                        latitude: 13.91
-                        longitude: 56.52
-                        distanceFromCity: 220
-                    licensePlate: ABC123
-                    category: SAKNAR_TILLSTAND
-                    attendantGroup:
-                      id: 1
-                      name: Stockholm Södra
-                    assignedToId: 7
-                    createdOn: '2025-06-17T15:17:00Z'
-                    updatedOn: '2025-06-17T15:17:00Z'
-                    status: NEW   
-              example:
-                - id: 12
-                  address:
-                    id: 101
-                    street: Södra vägen
-                    houseNumbers:
-                      - "1"
-                    city: Stockholm
-                    latitude: 59.33
-                    longitude: 18.06
-                    distanceFromCity: 120
-                  licensePlate: ABC123
-                  category: BLOCKERAR_UTFART
-                  attendantGroup:
-                    id: 1
-                    name: Stockholm Södra
-                  assignedToId: 7
-                  createdOn: '2025-06-17T14:22:00Z'
-                  updatedOn: '2025-06-17T14:22:00Z'
-                  status: NEW
-                - id: 13
-                  address:
-                      id: 102
-                      street: Norra vägen
-                      houseNumbers:
-                        - "3"
-                      city: Stad
-                      latitude: 13.91
-                      longitude: 56.52
-                      distanceFromCity: 220
-                  licensePlate: ABC123
-                  category: SAKNAR_TILLSTAND
-                  attendantGroup:
-                    id: 1
-                    name: Stockholm Södra
-                  assignedToId: 7
-                  createdOn: '2025-06-17T15:17:00Z'
-                  updatedOn: '2025-06-17T15:17:00Z'
-                  status: NEW      
+                page: 0
+                size: 10
+                totalElements: 1
+                totalPages: 1
         '401':
           description: Unauthorized
           headers: {}
@@ -520,7 +545,7 @@ paths:
 
         #### Behörighet:
 
-        - `ADMIN`: kan uppdatera alla fält
+        - `ADMIN`: kan uppdatera status på alla rapporter
             
         - `ATTENDANT`: kan ändra status om rapporten tillhör deras vaktgrupp
             
@@ -538,7 +563,26 @@ paths:
           required: true
           style: simple
           schema:
-            type: string
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - NEW
+                    - ASSIGNED
+                    - RESOLVED
+                    - CANCELLED
+            example:
+              status: RESOLVED
       responses:
         '200':
           description: Updated
@@ -547,9 +591,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportUpdatedResponse'
-                example:
-                  message: Report updated successfully
+              example:
+                message: Report updated successfully
+                report:
+                  id: 12
+                  address:
+                    id: 101
+                    longitude: 18.06
+                    latitude: 59.33
+                    street: Södra vägen
+                    houseNumbers:
+                      - "1"
+                    city: Stockholm
+                    distanceFromCity: 120
+                  licensePlate: ABC123
+                  category: NO_PARKING_AREA
+                  attendantGroup:
+                    id: 1
+                    name: Stockholm Södra
+                  assignedToId: null
                   createdOn: '2025-06-17T14:22:00Z'
+                  updatedOn: '2025-06-17T14:22:00Z'
+                  status: NEW
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorBadRequest'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                invalidStatus:
+                  summary: Invalid status value
+                  value:
+                    error: Invalid request parameter or value
+                missingStatus:
+                  summary: Missing status
+                  value:
+                    errors:
+                      - field: status
+                        message: must not be null
         '403':
           description: Forbidden
           headers: {}
@@ -562,18 +644,151 @@ paths:
                       error: You do not have permission to update a report
               example:
                 error: You do not have permission to update a report
+        '404':
+          description: Not Found
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorNotFound'
+                  - example:
+                      error: Report not found
+              example:
+                error: Report not found
+        '409':
+          description: Conflict
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ErrorConflict'
+                  - example:
+                      error: Report is already assigned to a different user
+              example:
+                error: Report is already assigned to a different user
       deprecated: false
       security:
         - bearer: []
-  /admin/attendant:
+  /addresses/search:
+    get:
+      tags:
+        - Address
+      summary: Search addresses
+      description: |-
+        ### GET /addresses/search
+
+        Söker adresser baserat på gatunamn och returnerar ett förslag per husnummer.
+      operationId: Searchaddresses
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressSuggestion'
+              example:
+                - id: 101
+                  street: Södra vägen
+                  city: Stockholm
+                  houseNumber: "1"
+                - id: 101
+                  street: Södra vägen
+                  city: Stockholm
+                  houseNumber: "3"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
+              example:
+                error: Missing or invalid token
+      deprecated: false
+      security:
+        - bearer: []
+  /addresses/route:
+    post:
+      tags:
+        - Address
+      summary: Get route between two coordinates
+      description: |-
+        ### POST /addresses/route
+
+        Hämtar en körbar rutt mellan två koordinatpunkter via extern route service.
+
+        `start` och `end` anges som `[latitude, longitude]`.
+      operationId: Getroute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+            example:
+              start:
+                - 59.3293
+                - 18.0686
+              end:
+                - 59.3326
+                - 18.0649
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+              example:
+                type: FeatureCollection
+                features:
+                  - type: Feature
+                    properties:
+                      summary:
+                        distance: 1200.5
+                        duration: 320.2
+                    geometry:
+                      type: LineString
+                      coordinates:
+                        - [18.0686, 59.3293]
+                        - [18.0649, 59.3326]
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
+              example:
+                error: Missing or invalid token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorAccessDenied'
+              example:
+                error: Access Denied
+      deprecated: false
+      security:
+        - bearer: []
+  /admin/users:
     post:
       tags:
         - Admin
-      summary: Create Attendant
+      summary: Create user
       description: |-
-        ### POST /admin/attendant
+        ### POST /admin/users
 
-        Skapar en parkeringsvakt och tilldelar den en vaktgrupp.
+        Skapar en användare, till exempel en parkeringsvakt.
 
         #### Behörighet:
 
@@ -582,41 +797,40 @@ paths:
         - `ATTENDANT`: Nej (403)
             
         - `CUSTOMER`: Nej (403)
-      operationId: CreateAttendant
+      operationId: Createuser
       parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserCreateRequest'
+            example:
+              email: vakt@example.com
+              password: secret123
+              role: ATTENDANT
+              attendantGroup:
+                id: 1
+                name: Stockholm Södra
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/AttendantCreatedResponse'
-                  - example:
-                      message: Vakt registrerad
-                      email: vakt@example.com
-                      attendantGroup:
-                        id: 1
-                        name: Stockholm Södra
+                $ref: '#/components/schemas/AdminUserCreatedResponse'
               example:
-                message: Vakt registrerad
-                email: vakt@example.com
-                attendantGroup:
-                  id: 1
-                  name: Stockholm Södra
+                user: 'User with id: 7 was created.'
         '400':
           description: Bad Request
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
-                  - example:
-                      error: Missing credentials
+                $ref: '#/components/schemas/ErrorBadRequest'
               example:
-                error: Missing credentials
+                error: Invalid request parameter or value
         '401':
           description: Unauthorized
           headers: {}
@@ -638,13 +852,12 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/ErrorAccessDenied'
                   - example:
-                      error: You do not have permission to create an attendant
+                      error: You do not have permission to create a user
               example:
-                error: You do not have permission to create an attendant
+                error: You do not have permission to create a user
       deprecated: false
       security:
         - bearer: []
-  /admin/users:
     get:
       tags:
         - Admin
@@ -672,20 +885,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-                description: ''
-                example:
+                $ref: '#/components/schemas/AdminUsersResponse'
+              example:
+                users:
                   - id: 1
-                    email: Stockholm Södra
                     role: CUSTOMER
                   - id: 7
-                    email: Stockholm Norra
                     role: ATTENDANT
-                    attendantGroup:
-                      id: 1
-                      name: Stockholm Södra
         '401':
           description: Unauthorized
           headers: {}
@@ -824,20 +1030,15 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AttendantGroup'
-                description: ''
-                example:
-                  - id: 1
-                    name: Stockholm Södra
-                  - id: 2
-                    name: Stockholm Norra
+                $ref: '#/components/schemas/AdminAttendantGroupsResponse'
               example:
-                - id: 1
-                  name: Stockholm Södra
-                - id: 2
-                  name: Stockholm Norra
+                attendantGroups:
+                  - name: Stockholm Södra
+                    attendants:
+                      - id: 7
+                        role: ATTENDANT
+                  - name: Stockholm Norra
+                    attendants: []
         '401':
           description: Unauthorized
           headers: {}
@@ -882,6 +1083,28 @@ components:
         user:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User logged in successfully
+    ValidationErrorResponse:
+      title: ValidationErrorResponse
+      required:
+        - errors
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+              - field
+              - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      example:
+        errors:
+          - field: status
+            message: must not be null
     ErrorResponse:
       title: ErrorResponse
       type: object
@@ -892,6 +1115,16 @@ components:
           type: string
       example:
         error: Bad request
+    ErrorBadRequest:
+      title: ErrorBadRequest
+      required:
+        - error
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: Invalid request parameter or value
     ErrorMissingCredentials:
       title: ErrorMissingCredentials
       required:
@@ -922,8 +1155,8 @@ components:
           type: string
       example:
         error: User not found
-    ErrorUserConflict:
-      title: ErrorUserConflict
+    ErrorConflict:
+      title: ErrorConflict
       required:
         - error
       type: object
@@ -947,34 +1180,125 @@ components:
         user:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User registered successfully
+    PagedReportResponse:
+      title: PagedReportResponse
+      required:
+        - items
+        - page
+        - size
+        - totalElements
+        - totalPages
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Report'
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+      example:
+        items:
+          - id: 12
+            address:
+              id: 101
+              street: Södra vägen
+              houseNumbers:
+                - "1"
+              city: Stockholm
+              latitude: 59.33
+              longitude: 18.06
+              distanceFromCity: 120
+            licensePlate: ABC123
+            category: NO_PARKING_AREA
+            attendantGroup:
+              id: 1
+              name: Stockholm Södra
+            assignedToId: 7
+            createdOn: '2025-06-17T14:22:00Z'
+            updatedOn: '2025-06-17T14:22:00Z'
+            status: NEW
+        page: 0
+        size: 10
+        totalElements: 1
+        totalPages: 1
     ReportCreatedResponse:
       title: ReportCreatedResponse
       required:
         - message
-        - createdOn
+        - report
       type: object
       properties:
         message:
           type: string
-        createdOn:
-          type: string
+        report:
+          $ref: '#/components/schemas/Report'
       example:
         message: Report created successfully
-        createdOn: '2025-06-17T14:22:00Z'
+        report:
+          id: 12
+          address:
+            id: 101
+            longitude: 18.06
+            latitude: 59.33
+            street: Södra vägen
+            houseNumbers:
+              - "1"
+            city: Stockholm
+            distanceFromCity: 120
+          licensePlate: ABC123
+          category: NO_PARKING_AREA
+          attendantGroup:
+            id: 1
+            name: Stockholm Södra
+          assignedToId: null
+          createdOn: '2025-06-17T14:22:00Z'
+          updatedOn: '2025-06-17T14:22:00Z'
+          status: NEW
     ReportUpdatedResponse:
       title: ReportUpdatedResponse
       required:
         - message
-        - updatedOn
+        - report
       type: object
       properties:
         message:
           type: string
         updatedOn:
           type: string
+        report:
+          $ref: '#/components/schemas/Report'
       example:
         message: Report updated successfully
-        updatedOn: '2025-06-17T14:22:00Z'
+        report:
+          id: 12
+          address:
+            id: 101
+            longitude: 18.06
+            latitude: 59.33
+            street: Södra vägen
+            houseNumbers:
+              - "1"
+            city: Stockholm
+            distanceFromCity: 120
+          licensePlate: ABC123
+          category: NO_PARKING_AREA
+          attendantGroup:
+            id: 1
+            name: Stockholm Södra
+          assignedToId: null
+          createdOn: '2025-06-17T14:22:00Z'
+          updatedOn: '2025-06-17T14:22:00Z'
+          status: NEW
     AttendantGroup:
       title: AttendantGroup
       required:
@@ -1051,6 +1375,85 @@ components:
           - "1"
         city: Stockholm
         distanceFromCity: 120
+    AddressSuggestion:
+      title: AddressSuggestion
+      required:
+        - id
+        - street
+        - city
+        - houseNumber
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        street:
+          type: string
+        city:
+          type: string
+        houseNumber:
+          type: string
+      example:
+        id: 101
+        street: Södra vägen
+        city: Stockholm
+        houseNumber: "1"
+    RouteRequest:
+      title: RouteRequest
+      required:
+        - start
+        - end
+      type: object
+      properties:
+        start:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+            format: double
+          description: Coordinate pair as [latitude, longitude].
+        end:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+            format: double
+          description: Coordinate pair as [latitude, longitude].
+      example:
+        start:
+          - 59.3293
+          - 18.0686
+        end:
+          - 59.3326
+          - 18.0649
+    RouteResponse:
+      title: RouteResponse
+      type: object
+      description: GeoJSON route response proxied from OpenRouteService.
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+        features:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      example:
+        type: FeatureCollection
+        features:
+          - type: Feature
+            properties:
+              summary:
+                distance: 1200.5
+                duration: 320.2
+            geometry:
+              type: LineString
+              coordinates:
+                - [18.0686, 59.3293]
+                - [18.0649, 59.3326]
     Report:
       title: Report
       required:
@@ -1109,56 +1512,113 @@ components:
         createdOn: '2025-06-17T14:22:00Z'
         updatedOn: '2025-06-17T14:22:00Z'
         status: NEW
-    AttendantCreatedResponse:
-      title: AttendantCreatedResponse
+    AdminUserCreateRequest:
+      title: AdminUserCreateRequest
       required:
-        - message
         - email
-        - attendantGroup
+        - password
+        - role
       type: object
       properties:
-        message:
-          type: string
         email:
           type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - ATTENDANT
+            - CUSTOMER
         attendantGroup:
           $ref: '#/components/schemas/AttendantGroup'
       example:
-        message: Vakt registrerad
         email: vakt@example.com
+        password: secret123
+        role: ATTENDANT
         attendantGroup:
           id: 1
           name: Stockholm Södra
-    User:
-      title: User
+    AdminUserCreatedResponse:
+      title: AdminUserCreatedResponse
+      required:
+        - user
+      type: object
+      properties:
+        user:
+          type: string
+      example:
+        user: 'User with id: 7 was created.'
+    UserAdminDetailDto:
+      title: UserAdminDetailDto
       required:
         - id
-        - email
         - role
       type: object
       properties:
         id:
           type: integer
-          format: int32
-        email:
-          type: string
+          format: int64
         role:
           type: string
-        attendantGroup:
-          type: object
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/AttendantGroup'
-            - example:
-                id: 1
-                name: Stockholm Södra
+          enum:
+            - ADMIN
+            - ATTENDANT
+            - CUSTOMER
       example:
-          id: 7
-          email: Stockholm Norra
-          role: ATTENDANT
-          attendantGroup:
-            id: 1
-            name: Stockholm Södra
+        id: 7
+        role: ATTENDANT
+    AdminUsersResponse:
+      title: AdminUsersResponse
+      required:
+        - users
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserAdminDetailDto'
+      example:
+        users:
+          - id: 1
+            role: CUSTOMER
+          - id: 7
+            role: ATTENDANT
+    AttendantGroupDetailDto:
+      title: AttendantGroupDetailDto
+      required:
+        - name
+        - attendants
+      type: object
+      properties:
+        name:
+          type: string
+        attendants:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/UserAdminDetailDto'
+      example:
+        name: Stockholm Södra
+        attendants:
+          - id: 7
+            role: ATTENDANT
+    AdminAttendantGroupsResponse:
+      title: AdminAttendantGroupsResponse
+      required:
+        - attendantGroups
+      type: object
+      properties:
+        attendantGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendantGroupDetailDto'
+      example:
+        attendantGroups:
+          - name: Stockholm Södra
+            attendants:
+              - id: 7
+                role: ATTENDANT
     UserDetailDto:
       title: UserDetailDto
       required:

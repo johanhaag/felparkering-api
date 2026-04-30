@@ -11,8 +11,10 @@ public enum Message {
     REPORT_NOT_FOUND("Report not found"),
     ADDRESS_NOT_FOUND("Address not found"),
     ATTENDANT_GROUP_NOT_FOUND("Attendant group not found"),
+    REPORT_CREATED_SUCCESSFULLY("Report created successfully"),
     REPORT_NO_PERMISSION("You do not have permission to get all reports"),
-    REPORT_ALREADY_ASSIGNED("The report is already assigned to a different user"),
+    REPORT_ALREADY_ASSIGNED("Report is already assigned to a different user"),
+    REPORT_UPDATED_SUCCESSFULLY("Report updated successfully"),
     ;
 
     private final String prettyName;

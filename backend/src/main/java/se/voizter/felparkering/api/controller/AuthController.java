@@ -26,12 +26,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         UserDetailDto user = authService.login(request);
-        return ResponseEntity.ok(Map.of("user", user, "message", Message.LOGIN));
+        return ResponseEntity.ok(Map.of("user", user, "message", Message.LOGIN.toString()));
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         UserDetailDto user = authService.register(request);
-        return ResponseEntity.ok(Map.of("user", user, "message", Message.REGISTER));
+        return ResponseEntity.ok(Map.of("user", user, "message", Message.REGISTER.toString()));
     }
 }
