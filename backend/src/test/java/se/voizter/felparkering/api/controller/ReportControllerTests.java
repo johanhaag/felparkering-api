@@ -163,7 +163,7 @@ public class ReportControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.reportRequest()))
                 .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NO_PERMISSION.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NO_PERMISSION.toString()));
     }
 
     @Test
@@ -192,7 +192,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports/99")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NOT_FOUND.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NOT_FOUND.toString()));
     }
 
     @Test
@@ -206,7 +206,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports/12")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_NO_PERMISSION.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_NO_PERMISSION.toString()));
     }
 
     @Test
@@ -257,7 +257,7 @@ public class ReportControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.updateStatusRequest(Status.ASSIGNED)))
                 .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error").value(Message.REPORT_ALREADY_ASSIGNED.toString()));
+            .andExpect(jsonPath("$.error.message").value(Message.REPORT_ALREADY_ASSIGNED.toString()));
     }
 
     private static UsernamePasswordAuthenticationToken auth(Long id, String role) {

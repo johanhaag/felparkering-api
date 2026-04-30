@@ -3,6 +3,8 @@ package se.voizter.felparkering.api.enums;
 public enum Message {
     LOGIN("User logged in successfully"),
     REGISTER("User registered successfully"),
+    UNAUTHORIZED("Missing or invalid token"),
+    ACCESS_DENIED("Access Denied"),
     MISSING_CREDENTIALS("Missing credentials"),
     PASSWORD_MISMATCH("Password and confirmation does not match"),
     USER_EXISTS("User already exists"),
