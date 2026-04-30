@@ -695,26 +695,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddressSuggestion'
+                $ref: '#/components/schemas/AddressSearchResponse'
               example:
-                - id: 101
-                  street: Södra vägen
-                  city: Stockholm
-                  houseNumber: "1"
-                - id: 101
-                  street: Södra vägen
-                  city: Stockholm
-                  houseNumber: "3"
+                data:
+                  - id: 101
+                    street: Södra vägen
+                    city: Stockholm
+                    houseNumber: "1"
+                  - id: 101
+                    street: Södra vägen
+                    city: Stockholm
+                    houseNumber: "3"
+                message: Addresses fetched successfully
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
       deprecated: false
       security:
         - bearer: []
@@ -749,36 +751,42 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RouteResponse'
+                $ref: '#/components/schemas/RouteApiResponse'
               example:
-                type: FeatureCollection
-                features:
-                  - type: Feature
-                    properties:
-                      summary:
-                        distance: 1200.5
-                        duration: 320.2
-                    geometry:
-                      type: LineString
-                      coordinates:
-                        - [18.0686, 59.3293]
-                        - [18.0649, 59.3326]
+                data:
+                  type: FeatureCollection
+                  features:
+                    - type: Feature
+                      properties:
+                        summary:
+                          distance: 1200.5
+                          duration: 320.2
+                      geometry:
+                        type: LineString
+                        coordinates:
+                          - [18.0686, 59.3293]
+                          - [18.0649, 59.3326]
+                message: Route fetched successfully
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorAccessDenied'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Access Denied
+                error:
+                  code: ACCESS_DENIED
+                  message: Access Denied
       deprecated: false
       security:
         - bearer: []
@@ -1402,6 +1410,26 @@ components:
         street: Södra vägen
         city: Stockholm
         houseNumber: "1"
+    AddressSearchResponse:
+      title: AddressSearchResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressSuggestion'
+        message:
+          type: string
+      example:
+        data:
+          - id: 101
+            street: Södra vägen
+            city: Stockholm
+            houseNumber: "1"
+        message: Addresses fetched successfully
     RouteRequest:
       title: RouteRequest
       required:
@@ -1458,6 +1486,32 @@ components:
               coordinates:
                 - [18.0686, 59.3293]
                 - [18.0649, 59.3326]
+    RouteApiResponse:
+      title: RouteApiResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/RouteResponse'
+        message:
+          type: string
+      example:
+        data:
+          type: FeatureCollection
+          features:
+            - type: Feature
+              properties:
+                summary:
+                  distance: 1200.5
+                  duration: 320.2
+              geometry:
+                type: LineString
+                coordinates:
+                  - [18.0686, 59.3293]
+                  - [18.0649, 59.3326]
+        message: Route fetched successfully
     Report:
       title: Report
       required:

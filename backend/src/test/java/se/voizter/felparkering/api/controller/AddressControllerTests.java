@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import se.voizter.felparkering.api.configuration.SecurityConfig;
 import se.voizter.felparkering.api.dto.AddressSuggestionDto;
 import se.voizter.felparkering.api.dto.RouteRequest;
+import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.security.JwtProvider;
 import se.voizter.felparkering.api.service.AddressService;
 import se.voizter.felparkering.api.testsupport.TestDataFactory;
@@ -53,10 +54,11 @@ public class AddressControllerTests {
                 .param("query", "test")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(1))
-            .andExpect(jsonPath("$[0].street").value("Testgatan"))
-            .andExpect(jsonPath("$[0].city").value("Teststad"))
-            .andExpect(jsonPath("$[0].houseNumber").value("2"));
+            .andExpect(jsonPath("$.data[0].id").value(1))
+            .andExpect(jsonPath("$.data[0].street").value("Testgatan"))
+            .andExpect(jsonPath("$.data[0].city").value("Teststad"))
+            .andExpect(jsonPath("$.data[0].houseNumber").value("2"))
+            .andExpect(jsonPath("$.message").value(Message.ADDRESSES_FETCHED.toString()));
     }
 
     @Test
@@ -90,9 +92,10 @@ public class AddressControllerTests {
         mockMvc.perform(post("/addresses/route")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
+            .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.type").value("FeatureCollection"));
+            .andExpect(jsonPath("$.data.type").value("FeatureCollection"))
+            .andExpect(jsonPath("$.message").value(Message.ROUTE_FETCHED.toString()));
 
         verify(addressService).getRoute(
             argThat(start -> Arrays.equals(start, request.start())),

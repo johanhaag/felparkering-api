@@ -19,6 +19,8 @@ public enum Message {
     REPORT_NO_PERMISSION("You do not have permission to get all reports"),
     REPORT_ALREADY_ASSIGNED("Report is already assigned to a different user"),
     REPORT_UPDATED_SUCCESSFULLY("Report updated successfully"),
+    ADDRESSES_FETCHED("Addresses fetched successfully"),
+    ROUTE_FETCHED("Route fetched successfully"),
     ADMIN_USERS_FETCHED("Users fetched successfully"),
     ADMIN_GROUPS_FETCHED("Attendant groups fetched successfully"),
     ;
