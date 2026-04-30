@@ -25,12 +25,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserDetailDto>> login(@Valid @RequestBody LoginRequest request) {
         UserDetailDto user = authService.login(request);
-        return ResponseEntity.ok(new ApiResponse<>(user, Message.LOGIN.toString()));
+        return ResponseEntity.ok(
+            new ApiResponse<>(
+                user, 
+                Message.LOGIN.toString()
+            )
+        );
     }
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDetailDto>> register(@Valid @RequestBody RegisterRequest request) {
         UserDetailDto user = authService.register(request);
-        return ResponseEntity.ok(new ApiResponse<>(user, Message.REGISTER.toString()));
+        return ResponseEntity.ok(
+            new ApiResponse<>(
+                user, 
+                Message.REGISTER.toString()
+            )
+        );
     }
 }

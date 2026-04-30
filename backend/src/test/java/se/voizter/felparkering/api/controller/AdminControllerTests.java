@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import se.voizter.felparkering.api.configuration.SecurityConfig;
 import se.voizter.felparkering.api.dto.AttendantGroupDetailDto;
 import se.voizter.felparkering.api.dto.UserAdminDetailDto;
+import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.enums.Role;
 import se.voizter.felparkering.api.model.User;
 import se.voizter.felparkering.api.security.JwtProvider;
@@ -49,10 +50,11 @@ public class AdminControllerTests {
             .thenReturn(List.of(new UserAdminDetailDto(1L, Role.ADMIN)));
 
         mockMvc.perform(get("/admin/users")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.users[0].id").value(1))
-            .andExpect(jsonPath("$.users[0].role").value("ADMIN"));
+            .andExpect(jsonPath("$.data[0].id").value(1))
+            .andExpect(jsonPath("$.data[0].role").value("ADMIN"))
+            .andExpect(jsonPath("$.message").value(Message.ADMIN_USERS_FETCHED.toString()));
     }
 
     @Test
@@ -75,10 +77,12 @@ public class AdminControllerTests {
 
         mockMvc.perform(post("/admin/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user").value("User with id: 7 was created."));
+            .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.id").value(7))
+            .andExpect(jsonPath("$.data.role").value("ATTENDANT"))
+            .andExpect(jsonPath("$.message").value(Message.USER_CREATED.toString()));
     }
 
     @Test
@@ -88,9 +92,9 @@ public class AdminControllerTests {
 
         mockMvc.perform(post("/admin/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
-            .andExpect(status().isOk());
+            .content(objectMapper.writeValueAsString(TestDataFactory.attendantUser()))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .andExpect(status().isCreated());
 
         verify(adminService).createAttendant(any(User.class));
     }
@@ -98,9 +102,10 @@ public class AdminControllerTests {
     @Test
     void deleteUserReturnsOkForAdmin() throws Exception {
         mockMvc.perform(delete("/admin/users/7")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("User with id: 7 was deleted."));
+            .andExpect(jsonPath("$.data.id").value(7))
+            .andExpect(jsonPath("$.message").value(Message.USER_DELETED.toString()));
     }
 
     @Test
@@ -118,9 +123,10 @@ public class AdminControllerTests {
             .thenReturn(List.of(new AttendantGroupDetailDto("Testgruppen", List.of())));
 
         mockMvc.perform(get("/admin/attendants")
-                .with(authentication(auth(1L, "ROLE_ADMIN"))))
+            .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.attendantGroups[0].name").value("Testgruppen"));
+            .andExpect(jsonPath("$.data[0].name").value("Testgruppen"))
+            .andExpect(jsonPath("$.message").value(Message.ADMIN_GROUPS_FETCHED.toString()));
     }
 
     private static UsernamePasswordAuthenticationToken auth(Long id, String role) {
