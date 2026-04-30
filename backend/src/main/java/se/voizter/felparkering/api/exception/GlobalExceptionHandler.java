@@ -17,6 +17,7 @@ import se.voizter.felparkering.api.exception.exceptions.MissingCredentialsExcept
 import se.voizter.felparkering.api.exception.exceptions.NotFoundException;
 import se.voizter.felparkering.api.exception.exceptions.PasswordMismatchException;
 import se.voizter.felparkering.api.exception.exceptions.UserConflictException;
+import se.voizter.felparkering.api.enums.Message;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -77,8 +78,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<?> handleInvalidCredentials(InvalidCredentialsException exception) {
+        HttpStatus status = Message.INVALID_CREDENTIALS.toString().equals(exception.getMessage())
+            ? HttpStatus.UNAUTHORIZED
+            : HttpStatus.FORBIDDEN;
+
         return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
+            .status(status)
             .body(Map.of("error", exception.getMessage()));
     }
 

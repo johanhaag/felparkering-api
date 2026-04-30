@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -66,10 +66,14 @@ public class SecurityConfig {
         .addFilterAfter(new JwtFilter(jwtProvider), SecurityContextHolderFilter.class)
         .exceptionHandling(e -> e
             .authenticationEntryPoint((req, res, ex) -> {
-                var a = SecurityContextHolder.getContext().getAuthentication();
-                System.out.println("AUTH ENTRY (401) " + req.getMethod() + " " + req.getRequestURI()
-                    + " ex=" + ex.getClass().getSimpleName() + " auth=" + a);
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                res.getWriter().write("{\"error\":\"Missing or invalid token\"}");
+            })
+            .accessDeniedHandler((req, res, ex) -> {
+                res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                res.getWriter().write("{\"error\":\"Access Denied\"}");
             })
         );
         return http.build();

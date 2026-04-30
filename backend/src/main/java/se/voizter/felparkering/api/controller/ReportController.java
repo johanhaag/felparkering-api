@@ -1,9 +1,9 @@
 package se.voizter.felparkering.api.controller;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,13 +18,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import se.voizter.felparkering.api.dto.PagedReportResponse;
+import se.voizter.felparkering.api.dto.ReportCreatedResponse;
 import se.voizter.felparkering.api.dto.ReportDetailDto;
 import se.voizter.felparkering.api.dto.ReportRequest;
+import se.voizter.felparkering.api.dto.ReportUpdatedResponse;
 import se.voizter.felparkering.api.dto.UpdateStatusRequest;
 import se.voizter.felparkering.api.dto.UserRequest;
 import se.voizter.felparkering.api.model.User;
 import se.voizter.felparkering.api.repository.UserRepository;
 import se.voizter.felparkering.api.service.ReportService;
+import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.enums.Status;
 
 @RestController
@@ -64,16 +68,27 @@ public class ReportController {
         @RequestParam(defaultValue = "desc") String sortDir,
         @RequestParam(required = false) String search,
         @RequestParam(required = false) Status status,
-        @RequestParam(required = false) UserRequest assignedTo
+        @RequestParam(required = false) UserRequest assignedToId
         ) {
-        Page<ReportDetailDto> reports = reportService.getAll(page, size, sortBy, sortDir, search, currentUser(), status, assignedTo);
-        return ResponseEntity.ok(reports);
+        Page<ReportDetailDto> reports = reportService.getAll(page, size, sortBy, sortDir, search, currentUser(), status, assignedToId);
+        
+        return ResponseEntity.ok(
+            new PagedReportResponse(
+                reports.getContent(), 
+                reports.getNumber(), 
+                reports.getSize(), 
+                reports.getTotalElements(), 
+                reports.getTotalPages()
+            )
+        );
     }
 
     @PostMapping
     public ResponseEntity<?> createReport(@Valid @RequestBody ReportRequest request) {
         ReportDetailDto report = reportService.create(currentUser(), request);
-        return ResponseEntity.ok(Map.of("message", "Report created successfully", "createdOn", report.createdOn()));
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(new ReportCreatedResponse(Message.REPORT_CREATED_SUCCESSFULLY.toString(), report));
     }
 
     @GetMapping("/{id}")
@@ -83,8 +98,8 @@ public class ReportController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateStatus(@RequestBody UpdateStatusRequest request, @PathVariable Long id) {
+    public ResponseEntity<?> updateStatus(@Valid @RequestBody UpdateStatusRequest request, @PathVariable Long id) {
         ReportDetailDto report = reportService.update(currentUser(), request.status(), id);
-        return ResponseEntity.ok(Map.of("message", "Report updated successfully", "updatedOn", report.updatedOn()));
+        return ResponseEntity.ok(new ReportUpdatedResponse(Message.REPORT_UPDATED_SUCCESSFULLY.toString(), report));
     }
 }

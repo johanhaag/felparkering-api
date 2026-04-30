@@ -70,7 +70,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content[0].id").value(12));
+            .andExpect(jsonPath("$.items[0].id").value(12));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class ReportControllerTests {
     }
 
     @Test
-    void createReportReturnsOkWhenRequestIsValid() throws Exception {
+    void createReportReturnsCreatedWhenRequestIsValid() throws Exception {
         User user = TestDataFactory.customerUserWithId(1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -112,11 +112,14 @@ public class ReportControllerTests {
 
         mockMvc.perform(post("/reports")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer test-token")
                 .content(objectMapper.writeValueAsString(TestDataFactory.reportRequest()))
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.message").value("Report created successfully"))
-            .andExpect(jsonPath("$.createdOn").exists());
+            .andExpect(jsonPath("$.report.id").value(12))
+            .andExpect(jsonPath("$.report.createdOn").exists())
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -142,7 +145,7 @@ public class ReportControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.reportRequest()))
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
-            .andExpect(status().isOk());
+            .andExpect(status().isCreated());
 
         verify(reportService).create(eq(user), any(ReportRequest.class));
     }
@@ -220,7 +223,8 @@ public class ReportControllerTests {
                 .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Report updated successfully"))
-            .andExpect(jsonPath("$.updatedOn").exists());
+            .andExpect(jsonPath("$.report.id").value(12))
+            .andExpect(jsonPath("$.report.status").value(Status.RESOLVED.toString()));
     }
 
     @Test

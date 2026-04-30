@@ -50,7 +50,7 @@ public class AuthControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.user.token").value("jwt-token"))
-            .andExpect(jsonPath("$.message").value(Message.LOGIN.name()))
+            .andExpect(jsonPath("$.message").value(Message.LOGIN.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
@@ -97,14 +97,14 @@ public class AuthControllerTests {
     }
 
     @Test
-    void loginReturnsForbiddenWhenServiceThrowsInvalidCredentialsException() throws Exception {
+    void loginReturnsUnauthorizedWhenServiceThrowsInvalidCredentialsException() throws Exception {
         when(authService.login(any(LoginRequest.class)))
             .thenThrow(new InvalidCredentialsException(Message.INVALID_CREDENTIALS.toString()));
 
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
-            .andExpect(status().isForbidden())
+            .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.error").value(Message.INVALID_CREDENTIALS.toString()));
     }
 
@@ -118,7 +118,7 @@ public class AuthControllerTests {
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.user.token").value("jwt-token"))
-            .andExpect(jsonPath("$.message").value(Message.REGISTER.name()))
+            .andExpect(jsonPath("$.message").value(Message.REGISTER.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
