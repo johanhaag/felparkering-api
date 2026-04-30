@@ -38,6 +38,12 @@ public final class TestDataFactory {
         return user;
     }
 
+    public static User customerUserWithId(Long id) {
+        User user = customerUser();
+        user.setId(id);
+        return user;
+    }
+
     public static User adminUser() {
         User user = new User();
         user.setEmail("admin@example.com");
@@ -51,6 +57,12 @@ public final class TestDataFactory {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(Role.ADMIN);
+        return user;
+    }
+
+    public static User adminUserWithId(Long id) {
+        User user = adminUser();
+        user.setId(id);
         return user;
     }
 
@@ -70,8 +82,20 @@ public final class TestDataFactory {
         return user;
     }
 
+    public static User attendantUserWithId(Long id) {
+        User user = attendantUser();
+        user.setId(id);
+        return user;
+    }
+
     public static User attendantUser(AttendantGroup group) {
         User user = attendantUser();
+        user.setAttendantGroup(group);
+        return user;
+    }
+
+    public static User attendantUserWithId(Long id, AttendantGroup group) {
+        User user = attendantUserWithId(id);
         user.setAttendantGroup(group);
         return user;
     }
@@ -86,6 +110,12 @@ public final class TestDataFactory {
     public static AttendantGroup attendantGroup(String name) {
         AttendantGroup attendantGroup = attendantGroup();
         attendantGroup.setName(name);
+        return attendantGroup;
+    }
+
+    public static AttendantGroup attendantGroup(Long id, String name) {
+        AttendantGroup attendantGroup = attendantGroup(name);
+        attendantGroup.setId(id);
         return attendantGroup;
     }
 
@@ -117,6 +147,16 @@ public final class TestDataFactory {
         return address;
     }
 
+    public static Address address(Long id, String street, List<String> houseNumbers, String city) {
+        Address address = address(street, houseNumbers, city);
+        address.setId(id);
+        return address;
+    }
+
+    public static Address address(Long id, String street, String houseNumber, String city) {
+        return address(id, street, List.of(houseNumber), city);
+    }
+
     // Reports
     public static Report report() {
         Report report = new Report();
@@ -132,6 +172,15 @@ public final class TestDataFactory {
     public static Report report(Address address) {
         Report report = report();
         report.setAddress(address);
+        return report;
+    }
+
+    public static Report report(Long id, User createdBy, AttendantGroup group, Status status) {
+        Report report = report();
+        report.setId(id);
+        report.setCreatedBy(createdBy);
+        report.setAttendantGroup(group);
+        report.setStatus(status);
         return report;
     }
 
@@ -220,6 +269,17 @@ public final class TestDataFactory {
             "ABC123", 
             ParkingViolationCategory.NO_PARKING_AREA
         );
+    }
+
+    public static ReportRequest reportRequest(
+        Long id,
+        String street,
+        String houseNumber,
+        String city,
+        String licensePlate,
+        ParkingViolationCategory category
+    ) {
+        return new ReportRequest(id, street, houseNumber, city, licensePlate, category);
     }
 
     public static UpdateStatusRequest updateStatusRequest(Status status) {
