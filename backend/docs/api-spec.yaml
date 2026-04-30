@@ -225,10 +225,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReportCreatedResponse'
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                message: Report created successfully
-                report:
+                data:
                   id: 12
                   address:
                     id: 101
@@ -248,42 +247,42 @@ paths:
                   createdOn: '2025-06-17T14:22:00Z'
                   updatedOn: '2025-06-17T14:22:00Z'
                   status: NEW
+                message: Report created successfully
         '400':
           description: Bad Request
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
-                  - example:
-                      error: Missing credentials
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing credentials
+                errors:
+                  - field: licensePlate
+                    message: License plate is required
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to create a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to create a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
       deprecated: false
       security:
         - bearer: []
@@ -325,7 +324,8 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            type: integer
+            format: int64
             default: createdOn
         - name: sortDir
           in: query
@@ -364,56 +364,56 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedReportResponse'
+                $ref: '#/components/schemas/PagedReportsResponse'
               example:
-                items:
-                  - id: 12
-                    address:
-                      id: 101
-                      street: Södra vägen
-                      houseNumbers:
-                        - "1"
-                      city: Stockholm
-                      latitude: 59.33
-                      longitude: 18.06
-                      distanceFromCity: 120
-                    licensePlate: ABC123
-                    category: NO_PARKING_AREA
-                    attendantGroup:
-                      id: 1
-                      name: Stockholm Södra
-                    assignedToId: 7
-                    createdOn: '2025-06-17T14:22:00Z'
-                    updatedOn: '2025-06-17T14:22:00Z'
-                    status: NEW
-                page: 0
-                size: 10
-                totalElements: 1
-                totalPages: 1
+                data:
+                  items:
+                    - id: 12
+                      address:
+                        id: 101
+                        street: Södra vägen
+                        houseNumbers:
+                          - "1"
+                        city: Stockholm
+                        latitude: 59.33
+                        longitude: 18.06
+                        distanceFromCity: 120
+                      licensePlate: ABC123
+                      category: NO_PARKING_AREA
+                      attendantGroup:
+                        id: 1
+                        name: Stockholm Södra
+                      assignedToId: 7
+                      createdOn: '2025-06-17T14:22:00Z'
+                      updatedOn: '2025-06-17T14:22:00Z'
+                      status: NEW
+                  page: 0
+                  size: 10
+                  totalElements: 1
+                  totalPages: 1
+                message: Reports fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get all reports
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get all reports
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
       deprecated: false
       security:
         - bearer: []
@@ -455,84 +455,62 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Report'
-                  - example:
-                      id: 12
-                      address:
-                        id: 101
-                        street: Södra vägen
-                        houseNumbers:
-                          - "1"
-                        city: Stad
-                        latitude: 59.3293
-                        longitude: 18.0686
-                        distanceFromCity: 120
-                      licensePlate: ABC123
-                      category: BLOCKERAR_UTFART
-                      attendantGroup:
-                        id: 1
-                        name: Stockholm Södra
-                      assignedToId: 7
-                      createdOn: '2025-06-17T14:22:00Z'
-                      updatedOn: '2025-06-17T14:22:00Z'
-                      status: NEW
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                id: 12
-                address:
-                  id: 101
-                  street: Södra vägen
-                  houseNumbers:
-                    - "1"
-                  city: Stad
-                  latitude: 59.3293
-                  longitude: 18.0686
-                  distanceFromCity: 120
-                licensePlate: ABC123
-                category: BLOCKERAR_UTFART
-                attendantGroup:
-                  id: 1
-                  name: Stockholm Södra
-                assignedToId: 7
-                createdOn: '2025-06-17T14:22:00Z'
-                updatedOn: '2025-06-17T14:22:00Z'
-                status: NEW
+                data:
+                  id: 12
+                  address:
+                    id: 101
+                    street: Södra vägen
+                    houseNumbers:
+                      - "1"
+                    city: Stad
+                    latitude: 59.3293
+                    longitude: 18.0686
+                    distanceFromCity: 120
+                  licensePlate: ABC123
+                  category: NO_PARKING_AREA
+                  attendantGroup:
+                    id: 1
+                    name: Stockholm Södra
+                  assignedToId: 7
+                  createdOn: '2025-06-17T14:22:00Z'
+                  updatedOn: '2025-06-17T14:22:00Z'
+                  status: NEW
+                message: Report fetched successfully
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorUnauthorized'
-                  - example:
-                      error: Missing or invalid token
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Missing or invalid token
+                error:
+                  code: UNAUTHORIZED
+                  message: Missing or invalid token
         '403':
           description: Forbidden
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to get a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to get a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: Report not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report not found
+                error:
+                  code: NOT_FOUND
+                  message: Report not found
       deprecated: false
       security:
         - bearer: []
@@ -592,10 +570,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReportUpdatedResponse'
+                $ref: '#/components/schemas/ReportResponse'
               example:
-                message: Report updated successfully
-                report:
+                data:
                   id: 12
                   address:
                     id: 101
@@ -614,20 +591,23 @@ paths:
                   assignedToId: null
                   createdOn: '2025-06-17T14:22:00Z'
                   updatedOn: '2025-06-17T14:22:00Z'
-                  status: NEW
+                  status: RESOLVED
+                message: Report updated successfully
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/ErrorBadRequest'
+                  - $ref: '#/components/schemas/ErrorResponse'
                   - $ref: '#/components/schemas/ValidationErrorResponse'
               examples:
                 invalidStatus:
                   summary: Invalid status value
                   value:
-                    error: Invalid request parameter or value
+                    error:
+                      code: BAD_REQUEST
+                      message: Invalid request parameter or value
                 missingStatus:
                   summary: Missing status
                   value:
@@ -640,36 +620,33 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorAccessDenied'
-                  - example:
-                      error: You do not have permission to update a report
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: You do not have permission to update a report
+                error:
+                  code: ACCESS_DENIED
+                  message: You do not have permission to get all reports
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: Report not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report not found
+                error:
+                  code: NOT_FOUND
+                  message: Report not found
         '409':
           description: Conflict
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorConflict'
-                  - example:
-                      error: Report is already assigned to a different user
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Report is already assigned to a different user
+                error:
+                  code: CONFLICT
+                  message: Report is already assigned to a different user
       deprecated: false
       security:
         - bearer: []
@@ -841,9 +818,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Invalid request parameter or value
+                error:
+                  code: BAD_REQUEST
+                  message: Invalid request parameter or value
         '401':
           description: Unauthorized
           headers: {}
@@ -1137,46 +1116,6 @@ components:
       example:
         code: BAD_REQUEST
         message: Bad request
-    ErrorBadRequest:
-      title: ErrorBadRequest
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Invalid request parameter or value
-    ErrorMissingCredentials:
-      title: ErrorMissingCredentials
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Missing credentials
-    ErrorNotFound:
-      title: ErrorNotFound
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: User not found
-    ErrorConflict:
-      title: ErrorConflict
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: User already exists
     RegisterResponse:
       title: RegisterResponse
       required:
@@ -1243,20 +1182,38 @@ components:
         size: 10
         totalElements: 1
         totalPages: 1
-    ReportCreatedResponse:
-      title: ReportCreatedResponse
+    PagedReportsResponse:
+      title: PagedReportsResponse
       required:
+        - data
         - message
-        - report
       type: object
       properties:
+        data:
+          $ref: '#/components/schemas/PagedReportResponse'
         message:
           type: string
-        report:
-          $ref: '#/components/schemas/Report'
       example:
-        message: Report created successfully
-        report:
+        data:
+          items: []
+          page: 0
+          size: 10
+          totalElements: 0
+          totalPages: 0
+        message: Reports fetched successfully
+    ReportResponse:
+      title: ReportResponse
+      required:
+        - data
+        - message
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Report'
+        message:
+          type: string
+      example:
+        data:
           id: 12
           address:
             id: 101
@@ -1276,41 +1233,7 @@ components:
           createdOn: '2025-06-17T14:22:00Z'
           updatedOn: '2025-06-17T14:22:00Z'
           status: NEW
-    ReportUpdatedResponse:
-      title: ReportUpdatedResponse
-      required:
-        - message
-        - report
-      type: object
-      properties:
-        message:
-          type: string
-        updatedOn:
-          type: string
-        report:
-          $ref: '#/components/schemas/Report'
-      example:
-        message: Report updated successfully
-        report:
-          id: 12
-          address:
-            id: 101
-            longitude: 18.06
-            latitude: 59.33
-            street: Södra vägen
-            houseNumbers:
-              - "1"
-            city: Stockholm
-            distanceFromCity: 120
-          licensePlate: ABC123
-          category: NO_PARKING_AREA
-          attendantGroup:
-            id: 1
-            name: Stockholm Södra
-          assignedToId: null
-          createdOn: '2025-06-17T14:22:00Z'
-          updatedOn: '2025-06-17T14:22:00Z'
-          status: NEW
+        message: Report fetched successfully
     AttendantGroup:
       title: AttendantGroup
       required:
@@ -1326,26 +1249,6 @@ components:
       example:
         id: 1
         name: Stockholm Södra
-    ErrorUnauthorized:
-      title: ErrorUnauthorized
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: Missing or invalid token
-    ErrorAccessDenied:
-      title: ErrorAccessDenied
-      required:
-        - error
-      type: object
-      properties:
-        error:
-          type: string
-      example:
-        error: You do not have permission to create a report
     Address:
       title: Address
       required:

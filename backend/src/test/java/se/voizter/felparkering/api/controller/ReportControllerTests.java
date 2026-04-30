@@ -70,7 +70,7 @@ public class ReportControllerTests {
         mockMvc.perform(get("/reports")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.items[0].id").value(12));
+            .andExpect(jsonPath("$.data.items[0].id").value(12));
     }
 
     @Test
@@ -117,8 +117,8 @@ public class ReportControllerTests {
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.message").value("Report created successfully"))
-            .andExpect(jsonPath("$.report.id").value(12))
-            .andExpect(jsonPath("$.report.createdOn").exists())
+            .andExpect(jsonPath("$.data.id").value(12))
+            .andExpect(jsonPath("$.data.createdOn").exists())
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
@@ -177,7 +177,7 @@ public class ReportControllerTests {
                 .header("Authorization", "Bearer test-token")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(12))
+            .andExpect(jsonPath("$.data.id").value(12))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
@@ -223,8 +223,8 @@ public class ReportControllerTests {
                 .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Report updated successfully"))
-            .andExpect(jsonPath("$.report.id").value(12))
-            .andExpect(jsonPath("$.report.status").value(Status.RESOLVED.toString()));
+            .andExpect(jsonPath("$.data.id").value(12))
+            .andExpect(jsonPath("$.data.status").value(Status.RESOLVED.toString()));
     }
 
     @Test

@@ -21,6 +21,8 @@ public enum Message {
     REPORT_UPDATED_SUCCESSFULLY("Report updated successfully"),
     ADDRESSES_FETCHED("Addresses fetched successfully"),
     ROUTE_FETCHED("Route fetched successfully"),
+    REPORTS_FETCHED("Reports fetched successfully"),
+    REPORT_FETCHED("Report fetched successfully"),
     ADMIN_USERS_FETCHED("Users fetched successfully"),
     ADMIN_GROUPS_FETCHED("Attendant groups fetched successfully"),
     ;
