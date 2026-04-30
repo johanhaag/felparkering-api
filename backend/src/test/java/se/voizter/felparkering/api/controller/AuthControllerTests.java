@@ -49,7 +49,7 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user.token").value("jwt-token"))
+            .andExpect(jsonPath("$.data.token").value("jwt-token"))
             .andExpect(jsonPath("$.message").value(Message.LOGIN.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
@@ -117,7 +117,7 @@ public class AuthControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.user.token").value("jwt-token"))
+            .andExpect(jsonPath("$.data.token").value("jwt-token"))
             .andExpect(jsonPath("$.message").value(Message.REGISTER.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }

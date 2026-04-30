@@ -44,7 +44,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
               example:
-                user:
+                data:
                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
                 message: User logged in successfully
         '400':
@@ -55,7 +55,7 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/ValidationErrorResponse'
-                  - $ref: '#/components/schemas/ErrorMissingCredentials'
+                  - $ref: '#/components/schemas/ErrorResponse'
               examples:
                 validationError:
                   summary: Validation error
@@ -66,31 +66,31 @@ paths:
                 missingCredentials:
                   summary: Missing credentials
                   value:
-                    error: Missing credentials
+                    error:
+                      code: BAD_REQUEST
+                      message: Missing credentials
         '401':
           description: Unauthorized
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorInvalidCredentials'
-                  - example:
-                      error: Invalid credentials
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: Invalid credentials
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: Invalid credentials
         '404':
           description: Not Found
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorNotFound'
-                  - example:
-                      error: User not found
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: User not found
+                error:
+                  code: NOT_FOUND
+                  message: User not found
       deprecated: false
       security: []
   /register:
@@ -130,7 +130,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegisterResponse'
               example:
-                  user: 
+                  data: 
                     token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
                   message: User registered successfully
         '400':
@@ -152,24 +152,26 @@ paths:
                 missingCredentials: 
                   summary: Missing credentials
                   value:
-                    error: Missing credentials
+                    error:
+                      code: BAD_REQUEST
+                      message: Missing credentials
                 passwordMismatch:
                   summary: Password and confirmation does not match
                   value:
-                    error: Password and confirmation does not match
+                    error:
+                      code: BAD_REQUEST
+                      message: Password and confirmation does not match
         '409':
           description: Conflict
           headers: {}
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/ErrorConflict'
-                  - example:
-                      message: 
-                      error: User already exists
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                error: User already exists
+                error:
+                  code: CONFLICT
+                  message: User already exists
       deprecated: false
   /reports:
     post:
@@ -1071,16 +1073,16 @@ components:
     LoginResponse:
       title: LoginResponse
       required:
-        - user
+        - data
         - message
       type: object
       properties:
-        user:
+        data:
           $ref: '#/components/schemas/UserDetailDto'
         message:
           type: string
       example:
-        user:
+        data:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User logged in successfully
     ValidationErrorResponse:
@@ -1112,9 +1114,25 @@ components:
         - error
       properties:
         error:
+          $ref: '#/components/schemas/ErrorBody'
+      example:
+        error:
+          code: BAD_REQUEST
+          message: Bad request
+    ErrorBody:
+      title: ErrorBody
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
           type: string
       example:
-        error: Bad request
+        code: BAD_REQUEST
+        message: Bad request
     ErrorBadRequest:
       title: ErrorBadRequest
       required:
@@ -1168,16 +1186,16 @@ components:
     RegisterResponse:
       title: RegisterResponse
       required:
-        - user
+        - data
         - message
       type: object
       properties:
-        user:
+        data:
           $ref: '#/components/schemas/UserDetailDto'
         message:
           type: string
       example:
-        user:
+        data:
           token: eyJhbGciOiJIUzI1NiIsInR5cCI6...
         message: User registered successfully
     PagedReportResponse:
