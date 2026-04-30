@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import se.voizter.felparkering.api.dto.ApiResponse;
 import se.voizter.felparkering.api.dto.AttendantGroupDetailDto;
-import se.voizter.felparkering.api.dto.DeletedUserResponse;
+import se.voizter.felparkering.api.dto.DeletedUserDto;
 import se.voizter.felparkering.api.dto.UserAdminDetailDto;
 import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.model.User;
@@ -55,11 +55,11 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<DeletedUserResponse>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DeletedUserDto>> deleteUser(@PathVariable Long id) {
         adminService.deleteUser(id);
         return ResponseEntity.ok(
             new ApiResponse<>(
-                new DeletedUserResponse(id),
+                new DeletedUserDto(id),
                 Message.USER_DELETED.toString()
             )
         );

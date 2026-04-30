@@ -109,14 +109,14 @@ public class AuthControllerTests {
     }
 
     @Test
-    void registerReturnsOkWithUserAndMessage() throws Exception {
+    void registerReturnsCreatedWithUserAndMessage() throws Exception {
         when(authService.register(any(RegisterRequest.class)))
             .thenReturn(new UserDetailDto("jwt-token"));
 
         mockMvc.perform(post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.data.token").value("jwt-token"))
             .andExpect(jsonPath("$.message").value(Message.REGISTER.toString()))
             .andExpect(OpenApiValidation.matchesOpenApiSpec());

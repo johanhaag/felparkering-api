@@ -70,9 +70,11 @@ public class ReportControllerTests {
             .thenReturn(new PageImpl<>(List.of(reportDetail(12L)), PageRequest.of(0, 10), 1));
 
         mockMvc.perform(get("/reports")
+                .header("Authorization", "Bearer test-token")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.items[0].id").value(12));
+            .andExpect(jsonPath("$.data.items[0].id").value(12))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -221,12 +223,14 @@ public class ReportControllerTests {
 
         mockMvc.perform(put("/reports/12")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer test-token")
                 .content(objectMapper.writeValueAsString(TestDataFactory.updateStatusRequest(Status.RESOLVED)))
                 .with(authentication(auth(1L, "ROLE_ADMIN"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Report updated successfully"))
             .andExpect(jsonPath("$.data.id").value(12))
-            .andExpect(jsonPath("$.data.status").value(Status.RESOLVED.toString()));
+            .andExpect(jsonPath("$.data.status").value(Status.RESOLVED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test

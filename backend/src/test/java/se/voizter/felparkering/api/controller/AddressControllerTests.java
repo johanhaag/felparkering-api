@@ -33,6 +33,7 @@ import se.voizter.felparkering.api.dto.RouteRequest;
 import se.voizter.felparkering.api.enums.Message;
 import se.voizter.felparkering.api.security.JwtProvider;
 import se.voizter.felparkering.api.service.AddressService;
+import se.voizter.felparkering.api.testsupport.OpenApiValidation;
 import se.voizter.felparkering.api.testsupport.TestDataFactory;
 
 @WebMvcTest(AddressController.class)
@@ -52,13 +53,15 @@ public class AddressControllerTests {
 
         mockMvc.perform(get("/addresses/search")
                 .param("query", "test")
+                .header("Authorization", "Bearer test-token")
                 .with(authentication(auth(1L, "ROLE_CUSTOMER"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data[0].id").value(1))
             .andExpect(jsonPath("$.data[0].street").value("Testgatan"))
             .andExpect(jsonPath("$.data[0].city").value("Teststad"))
             .andExpect(jsonPath("$.data[0].houseNumber").value("2"))
-            .andExpect(jsonPath("$.message").value(Message.ADDRESSES_FETCHED.toString()));
+            .andExpect(jsonPath("$.message").value(Message.ADDRESSES_FETCHED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -91,11 +94,13 @@ public class AddressControllerTests {
 
         mockMvc.perform(post("/addresses/route")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer test-token")
                 .content(objectMapper.writeValueAsString(request))
             .with(authentication(auth(1L, "ROLE_ATTENDANT"))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.type").value("FeatureCollection"))
-            .andExpect(jsonPath("$.message").value(Message.ROUTE_FETCHED.toString()));
+            .andExpect(jsonPath("$.message").value(Message.ROUTE_FETCHED.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
 
         verify(addressService).getRoute(
             argThat(start -> Arrays.equals(start, request.start())),

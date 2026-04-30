@@ -1,5 +1,7 @@
 package se.voizter.felparkering.api.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,7 +38,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserDetailDto>> register(@Valid @RequestBody RegisterRequest request) {
         UserDetailDto user = authService.register(request);
-        return ResponseEntity.ok(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
             new ApiResponse<>(
                 user, 
                 Message.REGISTER.toString()

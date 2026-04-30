@@ -36,8 +36,8 @@ paths:
                   type: string
                   example: abc123
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK
           headers: {}
           content:
             application/json:
@@ -1594,6 +1594,17 @@ components:
               - id: 7
                 role: ATTENDANT
         message: Attendant groups fetched successfully
+    DeletedUserDto:
+      title: DeletedUserDto
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+      example:
+        id: 7
     DeletedUserResponse:
       title: DeletedUserResponse
       required:
@@ -1602,13 +1613,7 @@ components:
       type: object
       properties:
         data:
-          type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
+          $ref: '#/components/schemas/DeletedUserDto'
         message:
           type: string
       example:
