@@ -78,10 +78,11 @@ public class AuthControllerTests {
     void loginReturnsBadRequestWhenEmailIsInvalid() throws Exception {
         mockMvc.perform(post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    TestDataFactory.loginRequest("not-an-email", "password123"))))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errors[*].field", hasItem("email")));
+            .content(objectMapper.writeValueAsString(
+                TestDataFactory.loginRequest("not-an-email", "password123"))))
+        .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[*].field", hasItem("email")))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -90,10 +91,11 @@ public class AuthControllerTests {
             .thenThrow(new NotFoundException(Message.USER_NOT_FOUND.toString()));
 
         mockMvc.perform(post("/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error.message").value(Message.USER_NOT_FOUND.toString()));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
+        .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error.message").value(Message.USER_NOT_FOUND.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -102,10 +104,11 @@ public class AuthControllerTests {
             .thenThrow(new InvalidCredentialsException(Message.INVALID_CREDENTIALS.toString()));
 
         mockMvc.perform(post("/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
-            .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.error.message").value(Message.INVALID_CREDENTIALS.toString()));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(TestDataFactory.loginRequest())))
+        .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.error.message").value(Message.INVALID_CREDENTIALS.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -126,20 +129,22 @@ public class AuthControllerTests {
     void registerReturnsBadRequestWhenEmailIsInvalid() throws Exception {
         mockMvc.perform(post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    TestDataFactory.registerRequest("bad-email", "password123"))))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errors[*].field", hasItem("email")));
+            .content(objectMapper.writeValueAsString(
+                TestDataFactory.registerRequest("bad-email", "password123"))))
+        .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[*].field", hasItem("email")))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
     void registerReturnsBadRequestWhenPasswordIsTooShort() throws Exception {
         mockMvc.perform(post("/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    TestDataFactory.registerRequest("customer@example.com", "short"))))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errors[*].field", hasItem("password")));
+            .content(objectMapper.writeValueAsString(
+                TestDataFactory.registerRequest("customer@example.com", "short"))))
+        .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[*].field", hasItem("password")))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -158,10 +163,11 @@ public class AuthControllerTests {
             .thenThrow(new UserConflictException(Message.USER_EXISTS.toString()));
 
         mockMvc.perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error.message").value(Message.USER_EXISTS.toString()));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
+        .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.error.message").value(Message.USER_EXISTS.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 
     @Test
@@ -170,9 +176,10 @@ public class AuthControllerTests {
             .thenThrow(new PasswordMismatchException(Message.PASSWORD_MISMATCH.toString()));
 
         mockMvc.perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error.message").value(Message.PASSWORD_MISMATCH.toString()));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(TestDataFactory.registerRequest())))
+        .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error.message").value(Message.PASSWORD_MISMATCH.toString()))
+            .andExpect(OpenApiValidation.matchesOpenApiSpec());
     }
 }
